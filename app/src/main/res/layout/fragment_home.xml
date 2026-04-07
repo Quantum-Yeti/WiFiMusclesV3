@@ -28,7 +28,7 @@
             android:id="@+id/tv_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Your WiFi signal strength"
+            android:text="@string/wifi_health_summary"
             android:textSize="14sp"
             android:textColor="@color/on_surface_variant"
             android:layout_gravity="center_horizontal"
@@ -111,7 +111,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Link Speed"
+                        android:text="@string/link_speed"
                         android:textSize="12sp"
                         android:textColor="@color/on_surface_variant" />
 

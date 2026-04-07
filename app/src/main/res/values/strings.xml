@@ -7,6 +7,8 @@
     <string name="nav_signal">Signal</string>
     <string name="nav_details">Details</string>
     <string name="nav_scanner">Scanner</string>
+    <string name="nav_options">Options</string>
+    <string name="nav_speed">Speed</string>
 
     //
     <string name="not_connected">Not Connected</string>
@@ -15,4 +17,7 @@
     // Error Messages
     <string name="perm_denied">Permission Denied</string>
     <string name="location_needed">Location permission required for WiFi info</string>
+    <string name="wifi_health_summary">WiFi Health Summary</string>
+    <string name="link_speed">Link Speed</string>
+    <string name="PodPlacer">PodPlacer</string>
 </resources>

@@ -2,14 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/homeFragment"
-        android:icon="@drawable/ic_wifi"
+        android:icon="@drawable/ic_dashboard"
         android:title="@string/nav_signal" />
     <item
         android:id="@+id/detailsFragment"
         android:icon="@drawable/ic_info"
         android:title="@string/nav_details" />
     <item
-        android:id="@+id/scannerFragment"
-        android:icon="@drawable/ic_scanner"
-        android:title="@string/nav_scanner" />
+        android:id="@+id/placerFragment"
+        android:icon="@drawable/ic_placer"
+        android:title="@string/PodPlacer" />
+    <item
+        android:id="@+id/speedFragment"
+        android:icon="@drawable/ic_speed"
+        android:title="@string/nav_speed" />
+    <item
+        android:id="@+id/optionsFragment"
+        android:icon="@drawable/ic_options"
+        android:title="@string/nav_options" />
 </menu>

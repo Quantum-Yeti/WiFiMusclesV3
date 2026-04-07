@@ -14,8 +14,18 @@
         android:label="Details" />
 
     <fragment
-        android:id="@+id/scannerFragment"
-        android:name="me.theoria.wifimuscles.ui.ScannerFragment"
-        android:label="Scanner" />
+        android:id="@+id/placerFragment"
+        android:name="me.theoria.wifimuscles.ui.PlacerFragment"
+        android:label="PodPlacer" />
+
+    <fragment
+        android:id="@+id/speedFragment"
+        android:name="me.theoria.wifimuscles.ui.SpeedFragment"
+        android:label="Speed" />
+
+    <fragment
+        android:id="@+id/optionsFragment"
+        android:name="me.theoria.wifimuscles.ui.OptionsFragment"
+        android:label="Options" />
 
 </navigation>
