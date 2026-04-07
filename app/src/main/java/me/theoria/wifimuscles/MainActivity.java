@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // Initialize AdMob
-        MobileAds.initialize(this);
+        MobileAds.initialize(this, initializationStatus -> {});
 
         // Setup Navigation
         NavHostFragment navHostFragment =

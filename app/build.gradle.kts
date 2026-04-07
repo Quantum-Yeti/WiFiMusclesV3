@@ -1,5 +1,11 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+val localProps = Properties().apply {
+    load(rootProject.file("local.properties").inputStream())
 }
 
 android {
@@ -13,6 +19,9 @@ android {
         versionCode = 38
         versionName = "3.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["admobAppId"] = localProps["ADMOB_APP_ID"] as String
+        buildConfigField("String", "HOME_AD_UNIT", "\"${localProps["ADMOB_HOME_AD_UNIT"]}\"")
     }
 
     buildTypes {
@@ -30,6 +39,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import me.theoria.wifimuscles.BuildConfig;
 
 import com.google.android.gms.ads.AdRequest;
 
@@ -59,9 +60,10 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-
+        binding.adView.setAdUnitId(BuildConfig.HOME_AD_UNIT);
         binding.adView.loadAd(new AdRequest.Builder().build());
+
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         observeViewModel();
 
