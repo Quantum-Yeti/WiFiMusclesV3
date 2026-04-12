@@ -4,14 +4,12 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Looper;
+import android.view.*;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.*;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -25,71 +23,44 @@ import java.util.List;
 
 import me.theoria.wifimuscles.R;
 import me.theoria.wifimuscles.databinding.FragmentHomeBinding;
-import me.theoria.wifimuscles.ui.viewmodel.HomeViewModel;
-import me.theoria.wifimuscles.ui.widget.SignalBlobView;
-import me.theoria.wifimuscles.ui.widget.SignalBloomView;
-import me.theoria.wifimuscles.ui.widget.SignalInvadersView;
-import me.theoria.wifimuscles.ui.widget.SignalOceanView;
 import me.theoria.wifimuscles.ui.adapters.SignalPagerAdapter;
-import me.theoria.wifimuscles.ui.widget.SignalPlasmaView;
-import me.theoria.wifimuscles.ui.widget.SignalRadarView;
+import me.theoria.wifimuscles.ui.viewmodel.HomeViewModel;
+import me.theoria.wifimuscles.ui.widget.*;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private HomeViewModel viewModel;
 
-    private final Handler handler = new Handler();
-    private boolean isRunning = false;
-    private boolean latencyRunning = false;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private SignalBlobView blob;
-    private SignalPlasmaView plasma;
-    private SignalBloomView pulse;
+    private static final long WIFI_INTERVAL = 2000;
+    private static final long LATENCY_INTERVAL = 5000;
+
+    private boolean running = false;
+
+    // Views (keep EXACTLY as before)
     private SignalRadarView radar;
     private SignalOceanView ocean;
+    private SignalBlobView blob;
+    private SignalPlasmaView plasma;
+    private SignalBloomView bloom;
     private SignalInvadersView invaders;
-
 
     private final ActivityResultLauncher<String> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (!isGranted) {
+                if (!isGranted && binding != null) {
                     binding.tvNetworkName.setText(R.string.perm_denied);
                     binding.tvSubtitle.setText(R.string.location_needed);
                 }
             });
-
-    private final Runnable wifiUpdater = new Runnable() {
-        @Override
-        public void run() {
-            if (!isRunning || viewModel == null || binding == null) return;
-
-            viewModel.updateWifiInfo();
-            handler.postDelayed(this, 2000);
-        }
-    };
-
-    private final Runnable latencyUpdater = new Runnable() {
-        @Override
-        public void run() {
-
-            if (!isRunning || viewModel == null || latencyRunning) return;
-
-            latencyRunning = true;
-
-            viewModel.updateLatency();
-
-            handler.postDelayed(() -> latencyRunning = false, 1000);
-
-            handler.postDelayed(this, 5000);
-        }
-    };
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -98,47 +69,38 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
-            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+        viewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
-            v.setPadding(
-                    v.getPaddingLeft(),
-                    v.getPaddingTop(),
-                    v.getPaddingRight(),
-                    bottomInset + 24 // keeps breathing room for AdView
-            );
-
-            return insets;
-        });
-
-        binding.adView.loadAd(new AdRequest.Builder().build());
-
-        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-
-        setupSignalPager();
-        observeViewModel();
-
-        viewModel.updateWifiInfo();
-
-        isRunning = true;
-        handler.post(wifiUpdater);
-        handler.post(latencyUpdater);
-
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
-        }
+        setupUi();
+        setupInsets();
+        setupPager();
+        setupObservers();
+        startLoops();
+        requestPermission();
     }
 
-    private void setupSignalPager() {
+    private void setupUi() {
+        binding.adView.loadAd(new AdRequest.Builder().build());
+    }
+
+    private void setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            v.setPadding(0, 0, 0, bottom + 24);
+            return insets;
+        });
+    }
+
+    // =========================
+    // PAGER (UNCHANGED VISUALS)
+    // =========================
+    private void setupPager() {
 
         radar = new SignalRadarView(requireContext(), null);
         ocean = new SignalOceanView(requireContext(), null);
         blob = new SignalBlobView(requireContext(), null);
         plasma = new SignalPlasmaView(requireContext(), null);
-        pulse = new SignalBloomView(requireContext(), null);
+        bloom = new SignalBloomView(requireContext(), null);
         invaders = new SignalInvadersView(requireContext(), null);
 
         List<View> pages = new ArrayList<>();
@@ -146,16 +108,17 @@ public class HomeFragment extends Fragment {
         pages.add(ocean);
         pages.add(blob);
         pages.add(plasma);
-        pages.add(pulse);
+        pages.add(bloom);
         pages.add(invaders);
 
-        SignalPagerAdapter adapter = new SignalPagerAdapter(pages);
-
-        binding.signalPager.setAdapter(adapter);
+        binding.signalPager.setAdapter(new SignalPagerAdapter(pages));
         binding.signalPager.setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
 
-    private void observeViewModel() {
+    // =========================
+    // OBSERVERS
+    // =========================
+    private void setupObservers() {
 
         viewModel.getSsid().observe(getViewLifecycleOwner(),
                 binding.tvNetworkName::setText);
@@ -172,18 +135,8 @@ public class HomeFragment extends Fragment {
         viewModel.getSignalQuality().observe(getViewLifecycleOwner(),
                 binding.tvSignalQuality::setText);
 
-        viewModel.getSignalColor().observe(getViewLifecycleOwner(),
-                color -> {
-                    if (color != null) {
-                        binding.tvSignalQuality.setTextColor(color);
-                    }
-                });
-
         viewModel.getStability().observe(getViewLifecycleOwner(),
                 binding.tvStability::setText);
-
-        viewModel.getScore().observe(getViewLifecycleOwner(),
-                score -> binding.tvScore.setText(score + "/100"));
 
         viewModel.getChannelInfo().observe(getViewLifecycleOwner(),
                 binding.tvChannel::setText);
@@ -191,30 +144,78 @@ public class HomeFragment extends Fragment {
         viewModel.getLatency().observe(getViewLifecycleOwner(),
                 binding.tvLatency::setText);
 
+        viewModel.getScore().observe(getViewLifecycleOwner(),
+                s -> binding.tvScore.setText(s + "/100"));
+
+        viewModel.getSignalColor().observe(getViewLifecycleOwner(),
+                color -> {
+                    if (color != null) {
+                        binding.tvSignalQuality.setTextColor(color);
+                    }
+                });
+
         viewModel.getSignalLevel().observe(getViewLifecycleOwner(), level -> {
+
             Integer color = viewModel.getSignalColor().getValue();
-            if (level != null && color != null) {
+            if (level == null || color == null) return;
 
-                radar.setSignalLevel(level, color);
-                ocean.setSignalLevel(level, color);
-                blob.setSignalLevel(level, color);
-                plasma.setSignalLevel(level, color);
-                pulse.setSignalLevel(level, color);
-                invaders.setSignalLevel(level, color);
-
-            }
+            pushSignal(level, color);
         });
+    }
 
-        viewModel.updateWifiInfo();
+    // 🔥 SINGLE SOURCE OF TRUTH
+    private void pushSignal(int level, int color) {
 
+        radar.setSignalLevel(level, color);
+        ocean.setSignalLevel(level, color);
+        blob.setSignalLevel(level, color);
+        plasma.setSignalLevel(level, color);
+        bloom.setSignalLevel(level, color);
+        invaders.setSignalLevel(level, color);
+    }
+
+    // =========================
+    // LOOPS
+    // =========================
+    private void startLoops() {
+        running = true;
+        handler.post(wifiLoop);
+        handler.post(latencyLoop);
+    }
+
+    private final Runnable wifiLoop = new Runnable() {
+        @Override
+        public void run() {
+            if (!running || viewModel == null) return;
+            viewModel.updateWifiInfo();
+            handler.postDelayed(this, WIFI_INTERVAL);
+        }
+    };
+
+    private final Runnable latencyLoop = new Runnable() {
+        @Override
+        public void run() {
+            if (!running || viewModel == null) return;
+            viewModel.updateLatency();
+            handler.postDelayed(this, LATENCY_INTERVAL);
+        }
+    };
+
+    private void requestPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        isRunning = false;
-        handler.removeCallbacks(wifiUpdater);
-        handler.removeCallbacks(latencyUpdater);
+        running = false;
+        handler.removeCallbacksAndMessages(null);
         binding = null;
     }
 }
