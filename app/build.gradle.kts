@@ -12,6 +12,8 @@ android {
     namespace = "me.theoria.wifimuscles"
     compileSdk = 36
 
+    val admobAppId = localProps.getProperty("ADMOB_APP_ID") ?: ""
+
     defaultConfig {
         applicationId = "me.theoria.wifimuscles"
         minSdk = 26
@@ -20,8 +22,13 @@ android {
         versionName = "3.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        manifestPlaceholders["admobAppId"] = localProps["ADMOB_APP_ID"] as String
-        buildConfigField("String", "HOME_AD_UNIT", "\"${localProps["ADMOB_HOME_AD_UNIT"]}\"")
+        manifestPlaceholders["admobAppId"] = admobAppId
+
+        buildConfigField(
+            "String",
+            "HOME_AD_UNIT",
+            "\"${localProps.getProperty("ADMOB_HOME_AD_UNIT") ?: ""}\""
+        )
     }
 
     buildTypes {

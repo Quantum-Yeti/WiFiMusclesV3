@@ -8,6 +8,7 @@
     <string name="nav_details">Details</string>
     <string name="nav_scanner">Scanner</string>
     <string name="nav_options">Options</string>
+    <string name="PodPlacer">PodPlacer</string>
     <string name="nav_speed">Speed</string>
 
     //
@@ -16,8 +17,21 @@
 
     // Error Messages
     <string name="perm_denied">Permission Denied</string>
-    <string name="location_needed">Location permission required for WiFi info</string>
+    <string name="location_needed">Location permission required for Wi-Fi info</string>
+
+    // Attributes
     <string name="wifi_health_summary">WiFi Health Summary</string>
     <string name="link_speed">Link Speed</string>
-    <string name="PodPlacer">PodPlacer</string>
+
+    // Google Ads
+    <string name="home_banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="mbps">-- Mbps</string>
+    <string name="frequency">Frequency</string>
+    <string name="empty">--</string>
+    <string name="stability">Stability</string>
+    <string name="score">Score</string>
+    <string name="zero">0</string>
+    <string name="channel">Channel</string>
+    <string name="latency">Latency</string>
+    <string name="empty_ms">-- ms</string>
 </resources>
