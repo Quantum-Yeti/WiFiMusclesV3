@@ -8,6 +8,6 @@
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
         <item name="android:colorBackground">@color/background</item>
-        <item name="android:windowBackground">@color/background_blue</item>
+        <item name="android:windowBackground">@color/primary</item>
     </style>
 </resources>

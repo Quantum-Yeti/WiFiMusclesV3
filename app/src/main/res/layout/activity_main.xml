@@ -25,7 +25,8 @@
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color" />
+        app:itemTextColor="@color/bottom_nav_color"
+        app:itemRippleColor="@color/nav_ripple"/>
 
     <me.theoria.wifimuscles.ui.widget.SignalLoadingView
         android:id="@+id/loadingView"

@@ -7,6 +7,8 @@ import android.net.wifi.WifiManager;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,8 +141,8 @@ public class SignalLoadingView extends View {
 
             float noise = (1f - signal) * 0.9f;
 
-            p.vx += (Math.random() - 0.5f) * noise;
-            p.vy += (Math.random() - 0.5f) * noise;
+            p.vx += (float) ((Math.random() - 0.5f) * noise);
+            p.vy += (float) ((Math.random() - 0.5f) * noise);
 
             p.vx *= 0.90f;
             p.vy *= 0.90f;
@@ -182,7 +184,7 @@ public class SignalLoadingView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas c) {
+    protected void onDraw(@NonNull Canvas c) {
 
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;

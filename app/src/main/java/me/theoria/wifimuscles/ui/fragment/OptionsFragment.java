@@ -1,50 +1,94 @@
 package me.theoria.wifimuscles.ui.fragment;
 
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.*;
 import android.widget.Button;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import me.theoria.wifimuscles.R;
-import me.theoria.wifimuscles.ui.viewmodel.HomeViewModel;
 
 public class OptionsFragment extends Fragment {
 
-    private HomeViewModel viewModel;
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
-        return inflater.inflate(R.layout.fragment_options, container, false);
+    public OptionsFragment() {
+        super(R.layout.fragment_options);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view,
+    public void onViewCreated(@NonNull android.view.View view,
                               @Nullable Bundle savedInstanceState) {
 
-        viewModel = new ViewModelProvider(requireActivity())
-                .get(HomeViewModel.class);
+        // ui refs
+        Switch darkTheme = view.findViewById(R.id.switchDarkTheme);
 
-        Button reset = view.findViewById(R.id.btnReset);
-        Switch freeze = view.findViewById(R.id.switchFreeze);
-        Switch debug = view.findViewById(R.id.switchDebug);
+        Button donate = view.findViewById(R.id.btnDonate);
+        Button rate = view.findViewById(R.id.btnRate);
+        Button share = view.findViewById(R.id.btnShare);
 
-        reset.setOnClickListener(v -> viewModel.resetData());
+        TextView version = view.findViewById(R.id.tvVersion);
 
-        freeze.setOnCheckedChangeListener((b, checked) -> {
-            // hook later into widgets freeze mode
+        // -------------------------
+        // version display
+        // -------------------------
+        try {
+            PackageInfo pInfo = requireContext()
+                    .getPackageManager()
+                    .getPackageInfo(requireContext().getPackageName(), 0);
+
+            version.setText("Version " + pInfo.versionName);
+
+        } catch (PackageManager.NameNotFoundException e) {
+            version.setText("Version ?");
+        }
+
+        // -------------------------
+        // theme toggle
+        // -------------------------
+        darkTheme.setOnCheckedChangeListener((b, checked) -> {
+            AppCompatDelegate.setDefaultNightMode(
+                    checked
+                            ? AppCompatDelegate.MODE_NIGHT_YES
+                            : AppCompatDelegate.MODE_NIGHT_NO
+            );
         });
 
-        debug.setOnCheckedChangeListener((b, checked) -> {
-            // logging toggle later
+        // -------------------------
+        // donate (paypal)
+        // -------------------------
+        donate.setOnClickListener(v -> {
+            String url = "https://www.paypal.com/";
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        });
+
+        // -------------------------
+        // rate app
+        // -------------------------
+        rate.setOnClickListener(v -> {
+            String uri = "market://details?id=" + requireContext().getPackageName();
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
+        });
+
+        // -------------------------
+        // share app
+        // -------------------------
+        share.setOnClickListener(v -> {
+            String link = "https://play.google.com/"
+                    + requireContext().getPackageName();
+
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT,
+                    "Check out Wi-Fi Muscles:\n" + link);
+
+            startActivity(Intent.createChooser(intent, "Share via"));
         });
     }
 }

@@ -34,4 +34,14 @@
     <string name="channel">Channel</string>
     <string name="latency">Latency</string>
     <string name="empty_ms">-- ms</string>
+    <string name="version">Version</string>
+    <string name="about">About</string>
+    <string name="share_the_app">Share the App</string>
+    <string name="rate_the_app">Rate the App</string>
+    <string name="donate_a_coffee">Donate a Coffee</string>
+    <string name="support">Support</string>
+    <string name="behavior">Behavior</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="appearance">Appearance</string>
+    <string name="settings">Settings</string>
 </resources>
