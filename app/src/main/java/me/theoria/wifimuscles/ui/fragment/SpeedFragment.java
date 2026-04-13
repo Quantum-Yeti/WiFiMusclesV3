@@ -1,4 +1,4 @@
-package me.theoria.wifimuscles.ui;
+package me.theoria.wifimuscles.ui.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

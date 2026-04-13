@@ -4,97 +4,108 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.*;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-/**
- * Stable reactive Wi-Fi blob (refactored)
- *
- * Key improvements:
- * - deterministic animation (no random per frame)
- * - smoothed signal transitions
- * - proper lifecycle handling
- * - cleaner physics separation
- */
 public class SignalBlobView extends View {
 
-    // -------------------------
-    // Paints
-    // -------------------------
-    private final Paint blobPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint particlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // Configuration
+    private static final int NODE_COUNT = 32;
 
-    // -------------------------
-    // Signal state
-    // -------------------------
-    private int signalLevel = 0;
+    // Paint
+    private final Paint blobPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint eyePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pupilPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint mouthPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    // Signal / energy
+    private float targetSignal = 0f;
+    private float currentSignal = 0f;
+
+    private float energy = 0f;
+    private float stability = 1f;
+
     private int signalColor = Color.GREEN;
 
-    private float targetSignal = 0f;
-    private float smoothSignal = 0f;
-
-    // -------------------------
-    // Animation state
-    // -------------------------
+    // Animation
     private float phase = 0f;
-    private float wobbleMultiplier = 1f;
-
     private ValueAnimator animator;
 
-    // -------------------------
-    // Geometry
-    // -------------------------
-    private static final int NODE_COUNT = 14;
+    // Blink system
+    private float blink = 0f;
+    private float blinkTarget = 0f;
+    private long nextBlinkTime = 0;
 
-    private final List<BlobNode> nodes = new ArrayList<>();
-    private final List<BlobParticle> particles = new ArrayList<>();
+    // Physics
+    private final List<Node> nodes = new ArrayList<>();
 
-    // -------------------------
-    // Constructor
-    // -------------------------
-    public SignalBlobView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public SignalBlobView(Context c, AttributeSet a) {
+        super(c, a);
         init();
     }
 
     private void init() {
 
         blobPaint.setStyle(Paint.Style.FILL);
-        particlePaint.setStyle(Paint.Style.FILL);
-        particlePaint.setAntiAlias(true);
 
-        setLayerType(LAYER_TYPE_HARDWARE, null);
+        eyePaint.setColor(Color.WHITE);
+        pupilPaint.setColor(Color.BLACK);
 
-        for (int i = 0; i < NODE_COUNT; i++) {
-            nodes.add(new BlobNode());
-        }
+        mouthPaint.setColor(Color.BLACK);
+        mouthPaint.setStyle(Paint.Style.STROKE);
+        mouthPaint.setStrokeWidth(6f);
 
-        startAnimation();
+        initNodes();
+        startLoop();
     }
 
     // -------------------------
-    // SIGNAL INPUT
+    // INPUTS
     // -------------------------
-    public void setSignalLevel(int level, int color) {
-        signalLevel = Math.max(0, Math.min(level, 4));
+
+    public void feedSignal(int level, int color) {
+
+        targetSignal = Math.max(0f, Math.min(level / 4f, 1f));
         signalColor = color;
 
-        targetSignal = signalLevel / 4f;
+        energy += targetSignal * 0.4f;
+        if (energy > 1f) energy = 1f;
+    }
 
-        blobPaint.setColor(color);
-        blobPaint.setShadowLayer(25f, 0f, 0f, color);
+    public void setSignalLevel(int level, int color) {
+        feedSignal(level, color);
+    }
 
-        invalidate();
+    public void setStability(float value) {
+        stability = Math.max(0f, Math.min(1f, value));
     }
 
     // -------------------------
-    // ANIMATION LOOP
+    // INIT
     // -------------------------
-    private void startAnimation() {
+
+    private void initNodes() {
+
+        nodes.clear();
+
+        for (int i = 0; i < NODE_COUNT; i++) {
+            float angle = (float) (2 * Math.PI * i / NODE_COUNT);
+            nodes.add(new Node(angle));
+        }
+    }
+
+    // -------------------------
+    // LOOP
+    // -------------------------
+
+    private void startLoop() {
+
+        if (animator != null) {
+            animator.cancel();
+            animator = null;
+        }
 
         animator = ValueAnimator.ofFloat(0f, 1f);
         animator.setDuration(16);
@@ -102,13 +113,14 @@ public class SignalBlobView extends View {
 
         animator.addUpdateListener(a -> {
 
-            phase += 0.03f;
+            phase += 0.04f;
 
-            // smooth signal transition (critical fix)
-            smoothSignal += (targetSignal - smoothSignal) * 0.08f;
+            currentSignal += (targetSignal - currentSignal) * 0.08f;
 
-            updateNodes();
-            updateParticles();
+            energy *= 0.98f;
+
+            updateBlink();
+            updatePhysics();
 
             invalidate();
         });
@@ -119,147 +131,149 @@ public class SignalBlobView extends View {
     // -------------------------
     // PHYSICS
     // -------------------------
-    private void updateNodes() {
 
-        float stability = smoothSignal;
-        float damping = 0.85f + (stability * 0.1f);
-        float chaos = (1f - stability) * 0.5f;
+    private void updatePhysics() {
 
-        for (BlobNode n : nodes) {
+        float cx = getWidth() / 2f;
+        float cy = getHeight() / 2f;
 
-            n.offsetX *= damping;
-            n.offsetY *= damping;
+        float baseRadius = Math.min(getWidth(), getHeight()) * 0.28f;
 
-            // deterministic wobble (NO random per frame)
-            float noise =
-                    (float) Math.sin(phase + n.seed) * chaos * 6f;
+        float size = baseRadius * (0.3f + currentSignal + energy * 0.3f);
 
-            n.offsetX += noise;
-            n.offsetY += noise;
-        }
-    }
+        float stabilityFactor = stability;
 
-    private void updateParticles() {
+        float stiffness = 0.08f + currentSignal * 0.12f + stabilityFactor * 0.05f;
+        float damping = 0.85f + stabilityFactor * 0.1f;
 
-        Iterator<BlobParticle> it = particles.iterator();
+        float chaos =
+                (1f - currentSignal) * 6f +
+                        energy * 4f +
+                        (1f - stabilityFactor) * 8f;
 
-        while (it.hasNext()) {
+        for (Node n : nodes) {
 
-            BlobParticle p = it.next();
+            float tx = cx + (float) Math.cos(n.angle) * size;
+            float ty = cy + (float) Math.sin(n.angle) * size;
 
-            p.x += p.vx;
-            p.y += p.vy;
+            float dx = tx - n.x;
+            float dy = ty - n.y;
 
-            p.alpha -= 0.03f;
+            n.vx += dx * stiffness;
+            n.vy += dy * stiffness;
 
-            if (p.alpha <= 0) it.remove();
+            n.vx += Math.sin(phase + n.angle * 3f) * chaos * 0.02f;
+            n.vy += Math.cos(phase + n.angle * 3f) * chaos * 0.02f;
+
+            n.vx *= damping;
+            n.vy *= damping;
+
+            n.x += n.vx;
+            n.y += n.vy;
         }
     }
 
     // -------------------------
     // DRAW
     // -------------------------
+
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    protected void onDraw(Canvas c) {
+        super.onDraw(c);
 
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
 
-        float maxRadius = Math.min(getWidth(), getHeight()) * 0.28f;
-
-        float baseRadius = maxRadius * (0.25f + smoothSignal);
-
-        float instability = 1f - smoothSignal;
-        float wobble = (8f + instability * 30f) * wobbleMultiplier;
-
         Path path = new Path();
 
-        for (int i = 0; i < NODE_COUNT; i++) {
-
-            BlobNode n = nodes.get(i);
-
-            float angle = (float) ((Math.PI * 2 / NODE_COUNT) * i);
-
-            float noise =
-                    (float) Math.sin(phase + i * 1.7f) * wobble;
-
-            float r = baseRadius + noise;
-
-            float x = cx + (float) Math.cos(angle) * r + n.offsetX;
-            float y = cy + (float) Math.sin(angle) * r + n.offsetY;
-
-            if (i == 0) path.moveTo(x, y);
-            else path.lineTo(x, y);
+        for (int i = 0; i < nodes.size(); i++) {
+            Node n = nodes.get(i);
+            if (i == 0) path.moveTo(n.x, n.y);
+            else path.lineTo(n.x, n.y);
         }
 
         path.close();
 
         blobPaint.setColor(signalColor);
-        blobPaint.setAlpha((int) (180 + smoothSignal * 75));
+        blobPaint.setAlpha((int) (180 + currentSignal * 75));
 
-        canvas.drawPath(path, blobPaint);
+        c.drawPath(path, blobPaint);
 
-        drawParticles(canvas);
+        drawFace(c, cx, cy);
     }
 
-    private void drawParticles(Canvas canvas) {
+    private void drawFace(Canvas c, float cx, float cy) {
 
-        for (BlobParticle p : particles) {
+        float mood = currentSignal;
 
-            particlePaint.setColor(signalColor);
-            particlePaint.setAlpha((int) (p.alpha * 255));
+        float eyeOffsetX = 50f;
+        float eyeOffsetY = -20f;
 
-            canvas.drawCircle(p.x, p.y, p.radius, particlePaint);
+        float eyeSize = 12f + mood * 10f;
+
+        float eyeHeightScale = 1f - blink;
+
+        c.save();
+        c.scale(1f, eyeHeightScale, cx - eyeOffsetX, cy + eyeOffsetY);
+        c.drawCircle(cx - eyeOffsetX, cy + eyeOffsetY, eyeSize, eyePaint);
+        c.drawCircle(cx - eyeOffsetX, cy + eyeOffsetY, eyeSize * 0.4f, pupilPaint);
+        c.restore();
+
+        c.save();
+        c.scale(1f, eyeHeightScale, cx + eyeOffsetX, cy + eyeOffsetY);
+        c.drawCircle(cx + eyeOffsetX, cy + eyeOffsetY, eyeSize, eyePaint);
+        c.drawCircle(cx + eyeOffsetX, cy + eyeOffsetY, eyeSize * 0.4f, pupilPaint);
+        c.restore();
+
+        float mouthWidth = 70f;
+        float mouthY = cy + 50f;
+
+        float smile = (mood - 0.5f) * 80f;
+
+        Path p = new Path();
+        p.moveTo(cx - mouthWidth, mouthY);
+        p.quadTo(cx, mouthY + smile, cx + mouthWidth, mouthY);
+
+        c.drawPath(p, mouthPaint);
+    }
+
+    // -------------------------
+    // BLINK
+    // -------------------------
+
+    private void updateBlink() {
+
+        long now = System.currentTimeMillis();
+
+        if (now > nextBlinkTime && blinkTarget == 0f) {
+            blinkTarget = 1f;
+            nextBlinkTime = now + 2000 + (long) (Math.random() * 3000);
+        }
+
+        float instability = 1f - stability;
+
+        if (Math.random() < instability * 0.02f) {
+            blinkTarget = 1f;
+        }
+
+        float speed = 0.25f;
+        blink += (blinkTarget - blink) * speed;
+
+        if (blink > 0.95f && blinkTarget == 1f) {
+            blinkTarget = 0f;
         }
     }
 
     // -------------------------
-    // TOUCH INTERACTION
+    // CLEANUP
     // -------------------------
+
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-
-            wobbleMultiplier = 2.3f;
-
-            float instability = 1f - smoothSignal;
-
-            int count = (int) (6 + instability * 14);
-
-            for (int i = 0; i < count; i++) {
-
-                float angle = (float) (Math.random() * Math.PI * 2);
-                float speed = 3f + (float) Math.random() * 6f;
-
-                particles.add(new BlobParticle(
-                        getWidth() / 2f,
-                        getHeight() / 2f,
-                        (float) Math.cos(angle) * speed,
-                        (float) Math.sin(angle) * speed,
-                        5f + (float) Math.random() * 6f
-                ));
-            }
-
-            for (BlobNode n : nodes) {
-                n.offsetX += (Math.random() - 0.5f) * 30f;
-                n.offsetY += (Math.random() - 0.5f) * 30f;
-            }
-        }
-
-        if (event.getAction() == MotionEvent.ACTION_UP ||
-                event.getAction() == MotionEvent.ACTION_CANCEL) {
-
-            wobbleMultiplier = 1f;
-        }
-
-        return true;
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        startLoop();
     }
 
-    // -------------------------
-    // LIFECYCLE SAFETY
-    // -------------------------
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -267,27 +281,16 @@ public class SignalBlobView extends View {
     }
 
     // -------------------------
-    // DATA STRUCTURES
+    // NODE
     // -------------------------
-    private static class BlobNode {
-        float offsetX = 0f;
-        float offsetY = 0f;
 
-        float seed = (float) (Math.random() * 10f);
-    }
-
-    private static class BlobParticle {
+    private static class Node {
+        float angle;
         float x, y;
         float vx, vy;
-        float radius;
-        float alpha = 1f;
 
-        BlobParticle(float x, float y, float vx, float vy, float radius) {
-            this.x = x;
-            this.y = y;
-            this.vx = vx;
-            this.vy = vy;
-            this.radius = radius;
+        Node(float angle) {
+            this.angle = angle;
         }
     }
 }

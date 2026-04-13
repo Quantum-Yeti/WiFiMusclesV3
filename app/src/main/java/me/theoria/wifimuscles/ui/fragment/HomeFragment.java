@@ -1,4 +1,4 @@
-package me.theoria.wifimuscles.ui;
+package me.theoria.wifimuscles.ui.fragment;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -24,6 +24,7 @@ import java.util.List;
 import me.theoria.wifimuscles.R;
 import me.theoria.wifimuscles.databinding.FragmentHomeBinding;
 import me.theoria.wifimuscles.ui.adapters.SignalPagerAdapter;
+import me.theoria.wifimuscles.ui.helpers.StabilityHelper;
 import me.theoria.wifimuscles.ui.viewmodel.HomeViewModel;
 import me.theoria.wifimuscles.ui.widget.*;
 
@@ -39,7 +40,7 @@ public class HomeFragment extends Fragment {
 
     private boolean running = false;
 
-    // Views (keep EXACTLY as before)
+    // Views
     private SignalRadarView radar;
     private SignalOceanView ocean;
     private SignalBlobView blob;
@@ -91,9 +92,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    // =========================
-    // PAGER (UNCHANGED VISUALS)
-    // =========================
+    // Pager
     private void setupPager() {
 
         radar = new SignalRadarView(requireContext(), null);
@@ -104,9 +103,9 @@ public class HomeFragment extends Fragment {
         invaders = new SignalInvadersView(requireContext(), null);
 
         List<View> pages = new ArrayList<>();
+        pages.add(blob);
         pages.add(radar);
         pages.add(ocean);
-        pages.add(blob);
         pages.add(plasma);
         pages.add(bloom);
         pages.add(invaders);
@@ -115,9 +114,7 @@ public class HomeFragment extends Fragment {
         binding.signalPager.setOverScrollMode(View.OVER_SCROLL_NEVER);
     }
 
-    // =========================
-    // OBSERVERS
-    // =========================
+    // Observers
     private void setupObservers() {
 
         viewModel.getSsid().observe(getViewLifecycleOwner(),
@@ -163,20 +160,24 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    // 🔥 SINGLE SOURCE OF TRUTH
+    // Push the signal with colors to views
     private void pushSignal(int level, int color) {
 
         radar.setSignalLevel(level, color);
         ocean.setSignalLevel(level, color);
-        blob.setSignalLevel(level, color);
+        blob.feedSignal(level, color);
         plasma.setSignalLevel(level, color);
         bloom.setSignalLevel(level, color);
         invaders.setSignalLevel(level, color);
+
+        float stability = StabilityHelper.calculateStabilityScore(
+                viewModel.getRssiHistory().getValue()
+        );
+
+        blob.setStability(stability);
     }
 
-    // =========================
-    // LOOPS
-    // =========================
+    // Loops
     private void startLoops() {
         running = true;
         handler.post(wifiLoop);

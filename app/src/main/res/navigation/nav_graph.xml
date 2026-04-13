@@ -5,27 +5,27 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="me.theoria.wifimuscles.ui.HomeFragment"
+        android:name="me.theoria.wifimuscles.ui.fragment.HomeFragment"
         android:label="Home" />
 
     <fragment
         android:id="@+id/detailsFragment"
-        android:name="me.theoria.wifimuscles.ui.DetailsFragment"
+        android:name="me.theoria.wifimuscles.ui.fragment.DetailsFragment"
         android:label="Details" />
 
     <fragment
         android:id="@+id/placerFragment"
-        android:name="me.theoria.wifimuscles.ui.PlacerFragment"
+        android:name="me.theoria.wifimuscles.ui.fragment.PlacerFragment"
         android:label="PodPlacer" />
 
     <fragment
         android:id="@+id/speedFragment"
-        android:name="me.theoria.wifimuscles.ui.SpeedFragment"
+        android:name="me.theoria.wifimuscles.ui.fragment.SpeedFragment"
         android:label="Speed" />
 
     <fragment
         android:id="@+id/optionsFragment"
-        android:name="me.theoria.wifimuscles.ui.OptionsFragment"
+        android:name="me.theoria.wifimuscles.ui.fragment.OptionsFragment"
         android:label="Options" />
 
 </navigation>

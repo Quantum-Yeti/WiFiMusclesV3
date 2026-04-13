@@ -1,4 +1,4 @@
-package me.theoria.wifimuscles.ui;
+package me.theoria.wifimuscles.ui.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,12 +9,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import me.theoria.wifimuscles.R;
 
-public class OptionsFragment extends Fragment {
+public class DetailsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_options, container, false);
+        return inflater.inflate(R.layout.fragment_details, container, false);
     }
 }

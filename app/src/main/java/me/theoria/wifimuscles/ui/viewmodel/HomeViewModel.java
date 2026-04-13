@@ -46,6 +46,9 @@ public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<String> latency = new MutableLiveData<>("-- ms"); // ping latency
     private final MutableLiveData<List<Integer>> rssiHistory = new MutableLiveData<>(new ArrayList<>()); // signal history
 
+    // Options
+    private final MutableLiveData<Boolean> debugMode = new MutableLiveData<>(false);
+
     // System Wi-Fi service access
     private final WifiManager wifiManager;
 
@@ -70,6 +73,16 @@ public class HomeViewModel extends AndroidViewModel {
     public LiveData<String> getChannelInfo() { return channelInfo; }
     public LiveData<String> getLatency() { return latency; }
     public LiveData<List<Integer>> getRssiHistory() { return rssiHistory; }
+
+    // Options setters
+    public void setDebugMode(boolean enabled) {
+        debugMode.postValue(enabled);
+    }
+
+    // Options getters
+    public LiveData<Boolean> getDebugMode() {
+        return debugMode;
+    }
 
     // Main Wi-Fi info update loop
     public void updateWifiInfo() {
@@ -140,11 +153,17 @@ public class HomeViewModel extends AndroidViewModel {
         history.add(rssiValue);
 
         // keep last 50 samples
-        if (history.size() > 50) {
+        if (history.size() > 8) {
             history.remove(0);
         }
 
-        rssiHistory.postValue(history);
+        int avgRSSI = 0;
+        for (int a : history) avgRSSI += a;
+        avgRSSI /= history.size();
+
+        rssi.postValue(avgRSSI + " dBm");
+
+        //rssiHistory.postValue(history);
 
         // Stability helper
         stability.postValue(StabilityHelper.calculateStability(history));
@@ -207,5 +226,25 @@ public class HomeViewModel extends AndroidViewModel {
             }
 
         }).start();
+    }
+
+    public void resetData() {
+
+        ssid.postValue("...");
+        rssi.postValue("...");
+        linkSpeed.postValue("...");
+        frequency.postValue("...");
+        signalQuality.postValue("...");
+
+        signalLevel.postValue(0);
+        signalColor.postValue(COLOR_GRAY);
+
+        stability.postValue("--");
+        score.postValue(0);
+        channelInfo.postValue("--");
+        latency.postValue("-- ms");
+
+        List<Integer> empty = new ArrayList<>();
+        rssiHistory.postValue(empty);
     }
 }
