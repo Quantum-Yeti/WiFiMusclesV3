@@ -40,13 +40,11 @@ public class HomeFragment extends Fragment {
 
     private boolean running = false;
 
-    // Views
-    private SignalRadarView radar;
-    private SignalOceanView ocean;
+    // Views for pager / user swipes
     private SignalBlobView blob;
     private SignalPlasmaView plasma;
-    private SignalChartView bloom;
-    private SignalJellyGooView quantumBloomView;
+    private SignalChartView chartView;
+    private SignalPongView pongView;
 
     private final ActivityResultLauncher<String> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -92,23 +90,17 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    // Pager
+    // Pager to swipe between views
     private void setupPager() {
 
-        radar = new SignalRadarView(requireContext(), null);
-        ocean = new SignalOceanView(requireContext(), null);
         blob = new SignalBlobView(requireContext(), null);
-        plasma = new SignalPlasmaView(requireContext(), null);
-        bloom = new SignalChartView(requireContext(), null);
-        quantumBloomView = new SignalJellyGooView(requireContext(), null);
+        chartView = new SignalChartView(requireContext(), null);
+        pongView = new SignalPongView(requireContext(), null);
 
         List<View> pages = new ArrayList<>();
         pages.add(blob);
-        //pages.add(radar);
-        //pages.add(ocean);
-        //pages.add(plasma);
-        pages.add(bloom);
-        pages.add(quantumBloomView);
+        pages.add(chartView);
+        pages.add(pongView);
 
         binding.signalPager.setAdapter(new SignalPagerAdapter(pages));
         binding.signalPager.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -163,12 +155,9 @@ public class HomeFragment extends Fragment {
     // Push the signal with colors to views
     private void pushSignal(int level, int color) {
 
-        //radar.setSignalLevel(level, color);
-        //ocean.setSignalLevel(level, color);
-        blob.feedSignal(level, color);
-        //plasma.setSignalLevel(level, color);
-        bloom.setSignalLevel(level, color);
-        quantumBloomView.setSignalLevel(level, color);
+        blob.feedSignal(level, color); // blob guy
+        chartView.setSignalLevel(level, color); // equalizer bar-chart
+        pongView.setSignalLevel(level, color); // pong game view
 
         float stability = StabilityHelper.calculateStabilityScore(
                 viewModel.getRssiHistory().getValue()

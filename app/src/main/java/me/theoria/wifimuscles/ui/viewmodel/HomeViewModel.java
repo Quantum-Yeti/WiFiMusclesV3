@@ -21,7 +21,6 @@ import me.theoria.wifimuscles.ui.helpers.StabilityHelper;
 public class HomeViewModel extends AndroidViewModel {
 
     // UI color states for signal strength visualizations
-    // UI color states for signal strength visualizations (improved palette)
     private static final int COLOR_GRAY   = 0xFF9E9E9E; // disconnected / neutral
     private static final int COLOR_RED    = 0xFFFF3B30; // weak signal
     private static final int COLOR_ORANGE = 0xFFFF9500; // poor / unstable
@@ -153,17 +152,18 @@ public class HomeViewModel extends AndroidViewModel {
         history.add(rssiValue);
 
         // keep last 50 samples
-        if (history.size() > 8) {
+        if (history.size() > 50) {
             history.remove(0);
         }
+
+        // IMPORTANT: always post a new copy
+        rssiHistory.postValue(new ArrayList<>(history));
 
         int avgRSSI = 0;
         for (int a : history) avgRSSI += a;
         avgRSSI /= history.size();
 
         rssi.postValue(avgRSSI + " dBm");
-
-        //rssiHistory.postValue(history);
 
         // Stability helper
         stability.postValue(StabilityHelper.calculateStability(history));

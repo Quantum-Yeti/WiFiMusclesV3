@@ -6,6 +6,8 @@ import android.graphics.*;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 public class SignalChartView extends View {
 
     private static final int   MAX_LEVEL  = 4;
@@ -93,7 +95,7 @@ public class SignalChartView extends View {
         animator.setDuration(16);
         animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.addUpdateListener(a -> {
-            t += 0.016f;
+            t += 0.008f;
             update();
             invalidate();
         });
@@ -111,10 +113,7 @@ public class SignalChartView extends View {
         if (animator == null) startLoop();
     }
 
-    // =========================================================================
     // Update
-    // =========================================================================
-
     private void update() {
         final float maxH    = getHeight() * 0.88f;
         final float minH    = getHeight() * 0.04f;
@@ -145,12 +144,9 @@ public class SignalChartView extends View {
         }
     }
 
-    // =========================================================================
     // Draw
-    // =========================================================================
-
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
 
         final int   w        = getWidth();
@@ -182,10 +178,7 @@ public class SignalChartView extends View {
         }
     }
 
-    // =========================================================================
     // Helpers
-    // =========================================================================
-
     private int argb(float alpha) {
         return Color.argb(
                 Math.max(0, Math.min(255, Math.round(alpha * 255f))),
