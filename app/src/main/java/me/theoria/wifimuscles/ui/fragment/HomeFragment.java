@@ -45,8 +45,8 @@ public class HomeFragment extends Fragment {
     private SignalOceanView ocean;
     private SignalBlobView blob;
     private SignalPlasmaView plasma;
-    private SignalBloomView bloom;
-    private SignalInvadersView invaders;
+    private SignalChartView bloom;
+    private SignalJellyGooView quantumBloomView;
 
     private final ActivityResultLauncher<String> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -99,16 +99,16 @@ public class HomeFragment extends Fragment {
         ocean = new SignalOceanView(requireContext(), null);
         blob = new SignalBlobView(requireContext(), null);
         plasma = new SignalPlasmaView(requireContext(), null);
-        bloom = new SignalBloomView(requireContext(), null);
-        invaders = new SignalInvadersView(requireContext(), null);
+        bloom = new SignalChartView(requireContext(), null);
+        quantumBloomView = new SignalJellyGooView(requireContext(), null);
 
         List<View> pages = new ArrayList<>();
         pages.add(blob);
-        pages.add(radar);
-        pages.add(ocean);
-        pages.add(plasma);
+        //pages.add(radar);
+        //pages.add(ocean);
+        //pages.add(plasma);
         pages.add(bloom);
-        pages.add(invaders);
+        pages.add(quantumBloomView);
 
         binding.signalPager.setAdapter(new SignalPagerAdapter(pages));
         binding.signalPager.setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -163,12 +163,12 @@ public class HomeFragment extends Fragment {
     // Push the signal with colors to views
     private void pushSignal(int level, int color) {
 
-        radar.setSignalLevel(level, color);
-        ocean.setSignalLevel(level, color);
+        //radar.setSignalLevel(level, color);
+        //ocean.setSignalLevel(level, color);
         blob.feedSignal(level, color);
-        plasma.setSignalLevel(level, color);
+        //plasma.setSignalLevel(level, color);
         bloom.setSignalLevel(level, color);
-        invaders.setSignalLevel(level, color);
+        quantumBloomView.setSignalLevel(level, color);
 
         float stability = StabilityHelper.calculateStabilityScore(
                 viewModel.getRssiHistory().getValue()

@@ -38,13 +38,13 @@ public class MainActivity extends AppCompatActivity {
             NavigationUI.setupWithNavController(binding.bottomNav, navController);
         }
 
-        SignalLoadingView loading = findViewById(R.id.loadingView);
+        /*SignalLoadingView loading = findViewById(R.id.loadingView);
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             loading.animate()
                     .alpha(0f)
                     .setDuration(400)
                     .withEndAction(() -> loading.setVisibility(View.GONE));
-        }, 8000);
+        }, 8000);*/
     }
 }
