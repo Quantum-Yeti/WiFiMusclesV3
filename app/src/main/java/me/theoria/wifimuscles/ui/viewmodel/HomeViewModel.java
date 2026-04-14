@@ -32,6 +32,8 @@ public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<String> ssid = new MutableLiveData<>("..."); // WiFi name
     private final MutableLiveData<String> rssi = new MutableLiveData<>("..."); // signal strength (dBm)
     private final MutableLiveData<String> linkSpeed = new MutableLiveData<>("..."); // Mbps/Gbps
+    private final MutableLiveData<Integer> linkSpeedValue = new MutableLiveData<>(0); // link speed for multi-line chart
+    private final MutableLiveData<List<Integer>> linkSpeedHistory = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<String> frequency = new MutableLiveData<>("..."); // band (2.4/5/6 GHz)
     private final MutableLiveData<String> signalQuality = new MutableLiveData<>("..."); // text label
 
@@ -101,9 +103,21 @@ public class HomeViewModel extends AndroidViewModel {
 
         // Link speed and formatting
         int speed = info.getLinkSpeed();
-        linkSpeed.postValue(speed >= 1000
-                ? String.format(Locale.US, "%.1f Gbps", speed / 1000f)
-                : speed + " Mbps");
+        linkSpeedValue.postValue(speed);
+
+        // formatted display value
+        float value;
+        String unit;
+
+        if (speed >= 1000) {
+            value = speed / 1000f;
+            unit = "Gbps";
+        } else {
+            value = speed;
+            unit = "Mbps";
+        }
+
+        linkSpeed.postValue(String.format(Locale.US, "%.1f %s", value, unit));
 
         // Frequency band detection
         int freq = info.getFrequency();

@@ -7,87 +7,142 @@ import android.view.View;
 
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 public class SignalWaveChartView extends View {
 
-    private static final int MAX_POINTS = 60;
+    private static final int MAX = 60;
 
-    private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    // paints
+    private final Paint rssiLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint emojiPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private final Deque<Float> rssiWave = new ArrayDeque<>();
-    private final Deque<Float> smoothWave = new ArrayDeque<>();
+    // data
+    private final List<Float> rssiData = new ArrayList<>();
+    private final List<Float> rssiTarget = new ArrayList<>();
 
-    private int signalLevel = 0;
+    // state
     private int signalColor = Color.GREEN;
 
-    public SignalWaveChartView(Context c) { super(c); init(); }
-    public SignalWaveChartView(Context c, AttributeSet a) { super(c, a); init(); }
+    // smoothing
+    private final float smoothFactor = 0.10f;
+
+    // animator
+    private final Runnable animator = new Runnable() {
+        @Override
+        public void run() {
+            smoothStep();
+            invalidate();
+            postDelayed(this, 16);
+        }
+    };
+
+    public SignalWaveChartView(Context c) {
+        super(c);
+        init();
+    }
+
+    public SignalWaveChartView(Context c, AttributeSet a) {
+        super(c, a);
+        init();
+    }
 
     private void init() {
         setWillNotDraw(false);
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
 
-        linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setStrokeWidth(4f);
+        // RSSI line
+        rssiLinePaint.setStyle(Paint.Style.STROKE);
+        rssiLinePaint.setStrokeWidth(3f);
+
+        // Fill
+        fillPaint.setStyle(Paint.Style.FILL);
+
+        // Emoji paint (FIXED)
+        emojiPaint.setTextSize(32f);
+        emojiPaint.setFakeBoldText(true);
+        emojiPaint.setTextAlign(Paint.Align.CENTER);
+        emojiPaint.setColor(Color.WHITE);
+        emojiPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        emojiPaint.setShadowLayer(6f, 0f, 2f, 0x66000000);
+
+        post(animator);
     }
 
     // ─────────────────────────────
-    // CONNECT TO VIEWMODEL (REAL DATA)
+    // BINDING
     // ─────────────────────────────
 
     public void bind(
             LifecycleOwner owner,
-            LiveData<Integer> signalLevelLive,
             LiveData<Integer> signalColorLive,
             LiveData<List<Integer>> rssiHistoryLive
     ) {
 
-        signalLevelLive.observe(owner, v -> {
-            signalLevel = v != null ? v : 0;
-        });
-
-        signalColorLive.observe(owner, v -> {
-            signalColor = v != null ? v : Color.GREEN;
-        });
+        signalColorLive.observe(owner, v ->
+                signalColor = v == null ? Color.GREEN : v
+        );
 
         rssiHistoryLive.observe(owner, list -> {
             if (list == null) return;
 
-            updateFromHistory(list);
+            rssiTarget.clear();
+
+            for (int rssi : list) {
+                rssiTarget.add(normalizeRssi(rssi));
+            }
+
+            syncSize();
         });
     }
 
     // ─────────────────────────────
-    // REAL DATA PROCESSING
+    // SMOOTHING
     // ─────────────────────────────
 
-    private void updateFromHistory(List<Integer> history) {
+    private void smoothStep() {
+        if (rssiTarget.isEmpty()) return;
 
-        rssiWave.clear();
-        smoothWave.clear();
+        syncSize();
 
-        float prev = 0f;
+        for (int i = 0; i < rssiData.size(); i++) {
+            float current = rssiData.get(i);
+            float target = rssiTarget.get(i);
 
-        for (int rssi : history) {
-
-            float normalized = normalizeRssi(rssi);
-
-            rssiWave.add(normalized);
-
-            // smoothing (EMA-like)
-            prev = prev * 0.7f + normalized * 0.3f;
-
-            smoothWave.add(prev);
+            rssiData.set(i,
+                    current + (target - current) * smoothFactor
+            );
         }
     }
 
+    private void syncSize() {
+
+        while (rssiTarget.size() > MAX) {
+            rssiTarget.remove(0);
+        }
+
+        while (rssiData.size() < rssiTarget.size()) {
+            rssiData.add(0f);
+        }
+
+        while (rssiData.size() > rssiTarget.size()) {
+            rssiData.remove(0);
+        }
+    }
+
+    // ─────────────────────────────
+    // NORMALIZATION
+    // ─────────────────────────────
+
     private float normalizeRssi(int rssi) {
         float v = (rssi + 100f) / 60f;
+        return clamp(v);
+    }
+
+    private float clamp(float v) {
         return Math.max(0f, Math.min(1f, v));
     }
 
@@ -99,47 +154,131 @@ public class SignalWaveChartView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        if (rssiData.size() < 2) return;
+
         float w = getWidth();
         float h = getHeight();
+        float step = w / (float) MAX;
 
-        drawWave(canvas, rssiWave, w, h, signalColor, 1.0f);
-        drawWave(canvas, smoothWave, w, h, Color.WHITE, 1.3f);
+        drawFill(canvas, rssiData, step, h, adjustAlpha(signalColor, 25));
+
+        rssiLinePaint.setColor(signalColor);
+        drawRssiLine(canvas, rssiData, step, h);
     }
 
-    private void drawWave(Canvas canvas,
-                          Deque<Float> data,
-                          float w, float h,
-                          int color,
-                          float stroke) {
+    // ─────────────────────────────
+    // LINE + EMOJIS
+    // ─────────────────────────────
 
-        if (data.size() < 2) return;
+    private void drawRssiLine(Canvas canvas,
+                              List<Float> data,
+                              float step,
+                              float h) {
 
-        linePaint.setColor(color);
-        linePaint.setStrokeWidth(3f * stroke);
+        Path path = new Path();
 
-        float step = w / (float) MAX_POINTS;
-
-        Float prev = null;
         float x = 0f;
+        float y0 = h - (data.get(0) * h);
 
-        for (Float v : data) {
+        path.moveTo(0, y0);
 
+        for (int i = 1; i < data.size(); i++) {
+
+            x += step;
+
+            float v = data.get(i);
             float y = h - (v * h);
 
-            if (prev != null) {
-                canvas.drawLine(x - step, h - (prev * h), x, y, linePaint);
-            }
+            path.lineTo(x, y);
 
-            prev = v;
-            x += step;
+            // 🔥 EMOJI EVERY 8 POINTS (your request)
+            if (i % 8 == 0) {
+
+                float emojiY = Math.max(30f, y - 18f);
+
+                canvas.drawText(
+                        rssiEmoji(v),
+                        x,
+                        emojiY,
+                        emojiPaint
+                );
+            }
         }
+
+        canvas.drawPath(path, rssiLinePaint);
     }
 
-    public void setSignalLevel(int level, int color, List<Integer> history) {
-        this.signalLevel = level;
-        this.signalColor = color;
+    // ─────────────────────────────
+    // FILL
+    // ─────────────────────────────
 
-        updateFromHistory(history);
+    private void drawFill(Canvas canvas,
+                          List<Float> data,
+                          float step,
+                          float h,
+                          int color) {
+
+        Path fill = new Path();
+
+        float x = 0f;
+        float y0 = h - (data.get(0) * h);
+
+        fill.moveTo(0, h);
+        fill.lineTo(0, y0);
+
+        for (int i = 1; i < data.size(); i++) {
+            x += step;
+            float y = h - (data.get(i) * h);
+            fill.lineTo(x, y);
+        }
+
+        fill.lineTo(x, h);
+        fill.close();
+
+        fillPaint.setColor(color);
+        canvas.drawPath(fill, fillPaint);
+    }
+
+    // ─────────────────────────────
+    // EMOJIS
+    // ─────────────────────────────
+
+    private String rssiEmoji(float value) {
+        if (value < 0.25f) return "💀";
+        if (value < 0.45f) return "😡";
+        if (value < 0.65f) return "😐";
+        if (value < 0.85f) return "🙂";
+        return "😄";
+    }
+
+    // ─────────────────────────────
+    // UTILS
+    // ─────────────────────────────
+
+    private int adjustAlpha(int color, int a) {
+        return Color.argb(
+                a,
+                Color.red(color),
+                Color.green(color),
+                Color.blue(color)
+        );
+    }
+
+    // optional external reset
+    public void setSignalLevel(int level, int color, List<Integer> history) {
+
+        signalColor = color;
+
+        rssiTarget.clear();
+        rssiData.clear();
+
+        for (int rssi : history) {
+            float v = normalizeRssi(rssi);
+            rssiTarget.add(v);
+            rssiData.add(v);
+        }
+
+        syncSize();
         invalidate();
     }
 }

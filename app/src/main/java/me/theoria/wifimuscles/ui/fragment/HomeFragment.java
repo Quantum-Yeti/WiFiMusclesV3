@@ -42,7 +42,7 @@ public class HomeFragment extends Fragment {
 
     // Views for pager / user swipes
     private SignalBlobView blob;
-    private SignalPlasmaView plasma;
+    private SignalWaveChartView wave;
     private SignalChartView chartView;
     private SignalPongView pongView;
 
@@ -96,10 +96,12 @@ public class HomeFragment extends Fragment {
         blob = new SignalBlobView(requireContext(), null);
         chartView = new SignalChartView(requireContext(), null);
         pongView = new SignalPongView(requireContext(), null);
+        wave = new SignalWaveChartView(requireContext(), null);
 
         List<View> pages = new ArrayList<>();
         pages.add(blob);
         pages.add(chartView);
+        pages.add(wave);
         pages.add(pongView);
 
         binding.signalPager.setAdapter(new SignalPagerAdapter(pages));
@@ -158,6 +160,11 @@ public class HomeFragment extends Fragment {
         blob.feedSignal(level, color); // blob guy
         chartView.setSignalLevel(level, color); // equalizer bar-chart
         pongView.setSignalLevel(level, color); // pong game view
+        List<Integer> history = viewModel.getRssiHistory().getValue();
+
+        if (history != null && wave != null) {
+            wave.setSignalLevel(level, color, history);
+        }
 
         float stability = StabilityHelper.calculateStabilityScore(
                 viewModel.getRssiHistory().getValue()
