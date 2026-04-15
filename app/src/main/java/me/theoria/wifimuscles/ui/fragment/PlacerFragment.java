@@ -1,5 +1,6 @@
 package me.theoria.wifimuscles.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,16 +13,18 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+
+import me.theoria.wifimuscles.R;
 import me.theoria.wifimuscles.databinding.FragmentPlacerBinding;
 import me.theoria.wifimuscles.ui.viewmodel.HomeViewModel;
-import me.theoria.wifimuscles.ui.widget.SpeedometerView;
 
 public class PlacerFragment extends Fragment {
 
     private FragmentPlacerBinding binding;
     private HomeViewModel viewModel;
 
-    // Polling handler for live RSSI updates
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private final Runnable wifiRunnable = new Runnable() {
@@ -29,7 +32,8 @@ public class PlacerFragment extends Fragment {
         public void run() {
             if (viewModel != null) {
                 viewModel.updateWifiInfo();
-                handler.postDelayed(this, 500); // slightly slower = more stable
+                updateNetworkInfo();
+                handler.postDelayed(this, 500);
             }
         }
     };
@@ -46,9 +50,12 @@ public class PlacerFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+
+        viewModel = new ViewModelProvider(requireActivity())
+                .get(HomeViewModel.class);
 
         observeSignal();
+        loadBannerAd();
     }
 
     private void observeSignal() {
@@ -61,13 +68,14 @@ public class PlacerFragment extends Fragment {
                 String cleaned = rssiText.replaceAll("[^0-9-]", "");
                 int rssi = Integer.parseInt(cleaned);
 
-                binding.signalText.setText("Signal: " + rssi + " dBm");
+                binding.speedometerView.setRssi(rssi);
+                binding.signalValue.setText(rssi + " dBm");
 
                 updateRecommendation(rssi);
-                updateSpeedometer(rssi);
 
-            } catch (Exception ignored) {
-                binding.signalText.setText("Signal: --");
+            } catch (Exception e) {
+                binding.signalValue.setText("-- dBm");
+                binding.recommendationText.setText("Scanning signal...");
             }
         });
     }
@@ -77,30 +85,62 @@ public class PlacerFragment extends Fragment {
         String message;
 
         if (rssi >= -50) {
-            message = "😄 Excellent signal — no extender needed";
+            message = "😄 Great Signal\nNo extender needed";
         } else if (rssi >= -60) {
-            message = "🙂 Good signal — place an extender here";
+            message = "🙂 Good Signal\nPlace an extender nearby";
         } else if (rssi >= -70) {
-            message = "😐 Fair signal — move closer to router and place an extender";
+            message = "😐 Fair Signal\nMove closer to router";
         } else if (rssi >= -80) {
-            message = "😟 Weak signal — too weak to place an extender here";
+            message = "😟 Weak Signal\nConsider repositioning";
         } else {
-            message = "😨 Poor signal — way too far from the router";
+            message = "😨 Poor Signal\nToo far from router";
         }
 
         binding.recommendationText.setText(message);
     }
 
-    private void updateSpeedometer(int rssi) {
+    private void loadBannerAd() {
 
-        // Normalize RSSI (-100 to -40 roughly) → 0..1
-        float normalized = (rssi + 100f) / 60f;
+        AdView adView = binding.adView;
 
-        if (normalized < 0f) normalized = 0f;
-        if (normalized > 1f) normalized = 1f;
+        AdRequest request = new AdRequest.Builder().build();
+        adView.loadAd(request);
+    }
 
-        // set target, view handles smoothing internally
-        binding.speedometerView.setRssi(rssi);
+    private void updateNetworkInfo() {
+        try {
+            android.net.wifi.WifiManager wifiManager =
+                    (android.net.wifi.WifiManager) requireContext()
+                            .getApplicationContext()
+                            .getSystemService(android.content.Context.WIFI_SERVICE);
+
+            android.net.wifi.WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+            // IP Address
+            int ipInt = wifiInfo.getIpAddress();
+            @SuppressLint("DefaultLocale") String ip = String.format(
+                    "%d.%d.%d.%d",
+                    (ipInt & 0xff),
+                    (ipInt >> 8 & 0xff),
+                    (ipInt >> 16 & 0xff),
+                    (ipInt >> 24 & 0xff)
+            );
+
+            binding.ipValue.setText(ip);
+
+            // BSSID (router MAC)
+            String bssid = wifiInfo.getBSSID();
+            binding.routerValue.setText(bssid != null ? bssid : "--");
+
+            if (wifiInfo.getNetworkId() == -1) {
+                binding.routerValue.setText(R.string.router_not_connected);
+                return;
+            }
+
+        } catch (Exception e) {
+            binding.ipValue.setText(R.string.empty_ip);
+            binding.routerValue.setText(R.string.empty_mac);
+        }
     }
 
     @Override
@@ -121,5 +161,4 @@ public class PlacerFragment extends Fragment {
         handler.removeCallbacks(wifiRunnable);
         binding = null;
     }
-
 }

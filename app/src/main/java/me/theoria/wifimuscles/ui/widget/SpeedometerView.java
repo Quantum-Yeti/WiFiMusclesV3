@@ -6,6 +6,8 @@ import android.graphics.*;
 import android.util.AttributeSet;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 public class SpeedometerView extends View {
 
     private static final float RSSI_MIN = -90f;
@@ -16,8 +18,6 @@ public class SpeedometerView extends View {
     private Paint needlePaint;
     private Paint hubPaint;
     private Paint glowPaint;
-
-    private RectF arcRect;
 
     private float currentValue = 0f;
     private float targetValue = 0f;
@@ -69,7 +69,7 @@ public class SpeedometerView extends View {
 
     @SuppressLint("DrawAllocation")
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
 
         updatePhysics();
@@ -80,7 +80,7 @@ public class SpeedometerView extends View {
         float cy = h * 0.9f;
         float radius = Math.min(w, h) * 0.7f;
 
-        arcRect = new RectF(
+        RectF arcRect = new RectF(
                 cx - radius,
                 cy - radius,
                 cx + radius,

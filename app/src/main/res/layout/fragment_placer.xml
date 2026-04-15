@@ -4,38 +4,195 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/background">
 
-    <!-- Speedometer -->
-    <me.theoria.wifimuscles.ui.widget.SpeedometerView
-        android:id="@+id/speedometerView"
+    <!-- TOP SPACING -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/topGuide"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.08"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <!-- SPEEDOMETER HERO AREA -->
+    <FrameLayout
+        android:id="@+id/speedContainer"
         android:layout_width="0dp"
-        android:layout_height="220dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="280dp"
+        app:layout_constraintTop_toTopOf="@id/topGuide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <me.theoria.wifimuscles.ui.widget.SpeedometerView
+            android:id="@+id/speedometerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="24dp"/>
+
+        <!-- BAD ICON -->
+        <ImageView
+            android:id="@+id/skullIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_skull_emoji"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="12dp"
+            android:alpha="0.75"
+            android:contentDescription="Weak signal"/>
+
+        <!-- GOOD ICON -->
+        <ImageView
+            android:id="@+id/happyIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_happy_emoji"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="12dp"
+            android:alpha="0.85"
+            android:contentDescription="Strong signal"/>
+
+    </FrameLayout>
+
+    <!-- BIG SPEED VALUE -->
+    <TextView
+        android:id="@+id/signalValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_dbm"
+        android:textSize="44sp"
+        android:textStyle="bold"
+        android:textColor="@color/on_surface"
+        android:letterSpacing="0.02"
+        app:layout_constraintTop_toTopOf="@id/speedContainer"
+        app:layout_constraintBottom_toBottomOf="@id/speedContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- RSSI text -->
-    <TextView
-        android:id="@+id/signalText"
-        android:layout_width="wrap_content"
+    <!-- STATUS CARD -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/statusCard"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Signal: -- dBm"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/speedometerView"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="1dp"
+        app:cardBackgroundColor="@color/surface"
+        app:strokeColor="@color/card_stroke"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toBottomOf="@id/speedContainer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Recommendation -->
-    <TextView
-        android:id="@+id/recommendationText"
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- LABEL -->
+            <TextView
+                android:id="@+id/signalLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SIGNAL QUALITY"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/on_surface_variant"
+                android:letterSpacing="0.12"/>
+
+            <!-- RECOMMENDATION -->
+            <TextView
+                android:id="@+id/recommendationText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Scanning signal..."
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"
+                android:layout_marginTop="6dp"/>
+
+            <!-- DIVIDER -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- NETWORK INFO -->
+
+            <!-- IP ROW -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/ipLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IP"
+                    android:textSize="13sp"
+                    android:textColor="@color/on_surface_variant"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/ipValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textSize="13sp"
+                    android:textColor="@color/on_surface_variant"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- ROUTER ROW -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/routerLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Router"
+                    android:textSize="13sp"
+                    android:textColor="@color/on_surface_variant"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/routerValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textSize="13sp"
+                    android:textColor="@color/on_surface_variant"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- AD -->
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Move around to test signal"
-        android:textSize="16sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/signalText"
+        android:layout_margin="12dp"
+        app:adSize="LARGE_BANNER"
+        app:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        app:layout_constraintTop_toBottomOf="@id/statusCard"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
