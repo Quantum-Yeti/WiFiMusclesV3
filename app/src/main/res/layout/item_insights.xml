@@ -1,0 +1,49 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#333333"
+    app:cardBackgroundColor="#1E1E1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="INSIGHTS"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/recommendation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Analyzing..."
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/placementHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Placement: --"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/rangeNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="--"
+            android:textColor="#AAAAAA" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

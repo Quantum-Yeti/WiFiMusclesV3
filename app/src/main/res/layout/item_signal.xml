@@ -1,0 +1,92 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#333333"
+    app:cardBackgroundColor="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SIGNAL"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/rssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="RSSI: -- dBm"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/signalLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Signal Level: -- / 5"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/signalQuality"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Signal Quality: --%"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/linkSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Link Speed: -- Mbps"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/txLinkSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TX Speed: -- Mbps"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/rxLinkSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RX Speed: -- Mbps"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/frequency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Frequency: -- MHz"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/channel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Channel: --"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/band"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Band: --"
+            android:textColor="#000000" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,71 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#333333"
+    app:cardBackgroundColor="#1E1E1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="NETWORK"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/ssid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="SSID: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/bssid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BSSID: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="IP: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/macAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MAC: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/networkId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Network ID: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/hidden"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hidden SSID: --"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

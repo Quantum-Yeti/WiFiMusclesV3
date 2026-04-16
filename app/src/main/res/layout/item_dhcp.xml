@@ -1,0 +1,71 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#333333"
+    app:cardBackgroundColor="#1E1E1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DHCP"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/gateway"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Gateway: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/subnet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Subnet Mask: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/dns1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DNS 1: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/dns2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DNS 2: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/dhcpServer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DHCP Server: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/leaseDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Lease Duration: --"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

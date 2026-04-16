@@ -1,0 +1,79 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="20dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#333333"
+    app:cardBackgroundColor="#1E1E1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="STABILITY"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/avgRssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Avg RSSI: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/minRssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Min RSSI: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/maxRssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Max RSSI: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/jitter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Jitter: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/stdDev"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Std Dev: --"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/sampleCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Samples: -- / 10"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/stabilityScore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stability Score: -- / 100"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
