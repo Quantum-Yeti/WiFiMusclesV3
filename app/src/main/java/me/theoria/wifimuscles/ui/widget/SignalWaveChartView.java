@@ -17,20 +17,22 @@ public class SignalWaveChartView extends View {
 
     // paints
     private final Paint rssiLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint avgLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint emojiPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    // data
+    // RAW data
     private final List<Float> rssiData = new ArrayList<>();
     private final List<Float> rssiTarget = new ArrayList<>();
 
-    // state
+    // AVG data
+    private final List<Float> avgData = new ArrayList<>();
+    private final List<Float> avgTarget = new ArrayList<>();
+
     private int signalColor = Color.GREEN;
 
-    // smoothing
-    private final float smoothFactor = 0.10f;
+    private final float smoothFactor = 0.18f;
 
-    // animator
     private final Runnable animator = new Runnable() {
         @Override
         public void run() {
@@ -54,28 +56,29 @@ public class SignalWaveChartView extends View {
         setWillNotDraw(false);
         setLayerType(LAYER_TYPE_SOFTWARE, null);
 
-        // RSSI line
+        // RAW line
         rssiLinePaint.setStyle(Paint.Style.STROKE);
-        rssiLinePaint.setStrokeWidth(3f);
+        rssiLinePaint.setStrokeWidth(6f);
 
-        // Fill
+        // AVG line
+        avgLinePaint.setStyle(Paint.Style.STROKE);
+        avgLinePaint.setColor(0xFFFF9500); // orange
+        avgLinePaint.setStrokeWidth(6f);
+        avgLinePaint.setStyle(Paint.Style.STROKE);
+        avgLinePaint.setShadowLayer(6f, 0f, 0f, 0x66000000);
+
         fillPaint.setStyle(Paint.Style.FILL);
 
-        // Emoji paint (FIXED)
         emojiPaint.setTextSize(32f);
         emojiPaint.setFakeBoldText(true);
         emojiPaint.setTextAlign(Paint.Align.CENTER);
         emojiPaint.setColor(Color.WHITE);
-        emojiPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
         emojiPaint.setShadowLayer(6f, 0f, 2f, 0x66000000);
 
         post(animator);
     }
 
-    // ─────────────────────────────
     // BINDING
-    // ─────────────────────────────
-
     public void bind(
             LifecycleOwner owner,
             LiveData<Integer> signalColorLive,
@@ -87,69 +90,90 @@ public class SignalWaveChartView extends View {
         );
 
         rssiHistoryLive.observe(owner, list -> {
-            if (list == null) return;
+            if (list == null || list.isEmpty()) return;
 
-            rssiTarget.clear();
+            int latest = list.get(list.size() - 1);
 
-            for (int rssi : list) {
-                rssiTarget.add(normalizeRssi(rssi));
+            // RAW
+            float raw = normalizeRssi(latest);
+            rssiTarget.add(raw);
+
+            // AVG (rolling window)
+            int window = 10; // try 5–15
+
+            int start = Math.max(0, list.size() - window);
+
+            int sum = 0;
+            int count = 0;
+
+            for (int i = start; i < list.size(); i++) {
+                sum += list.get(i);
+                count++;
             }
+
+            int avg = sum / count;
+
+            float avgNorm = normalizeRssi(avg);
+            avgTarget.add(avgNorm);
+
+            trim(rssiTarget);
+            trim(avgTarget);
 
             syncSize();
         });
     }
 
-    // ─────────────────────────────
     // SMOOTHING
-    // ─────────────────────────────
-
     private void smoothStep() {
-        if (rssiTarget.isEmpty()) return;
+
+        smoothList(rssiData, rssiTarget);
+        smoothList(avgData, avgTarget);
+    }
+
+    private void smoothList(List<Float> data, List<Float> target) {
+
+        if (target.isEmpty()) return;
 
         syncSize();
 
-        for (int i = 0; i < rssiData.size(); i++) {
-            float current = rssiData.get(i);
-            float target = rssiTarget.get(i);
+        for (int i = 0; i < data.size(); i++) {
+            float current = data.get(i);
+            float t = target.get(i);
 
-            rssiData.set(i,
-                    current + (target - current) * smoothFactor
-            );
+            data.set(i, current + (t - current) * smoothFactor);
+        }
+    }
+
+    private void trim(List<Float> list) {
+        while (list.size() > MAX) {
+            list.remove(0);
         }
     }
 
     private void syncSize() {
 
-        while (rssiTarget.size() > MAX) {
-            rssiTarget.remove(0);
+        syncPair(rssiData, rssiTarget);
+        syncPair(avgData, avgTarget);
+    }
+
+    private void syncPair(List<Float> data, List<Float> target) {
+
+        while (data.size() < target.size()) {
+            data.add(0f);
         }
 
-        while (rssiData.size() < rssiTarget.size()) {
-            rssiData.add(0f);
-        }
-
-        while (rssiData.size() > rssiTarget.size()) {
-            rssiData.remove(0);
+        while (data.size() > target.size()) {
+            data.remove(0);
         }
     }
 
-    // ─────────────────────────────
     // NORMALIZATION
-    // ─────────────────────────────
-
     private float normalizeRssi(int rssi) {
         float v = (rssi + 100f) / 60f;
-        return clamp(v);
-    }
-
-    private float clamp(float v) {
         return Math.max(0f, Math.min(1f, v));
     }
 
-    // ─────────────────────────────
     // DRAW
-    // ─────────────────────────────
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -160,20 +184,25 @@ public class SignalWaveChartView extends View {
         float h = getHeight();
         float step = w / (float) MAX;
 
+        // fill (based on RAW)
         drawFill(canvas, rssiData, step, h, adjustAlpha(signalColor, 25));
 
+        // AVG line (draw first so it's behind)
+        //avgLinePaint.setColor(adjustAlpha(signalColor, 160));
+        drawLine(canvas, avgData, step, h, avgLinePaint, false);
+
+        // RAW line
         rssiLinePaint.setColor(signalColor);
-        drawRssiLine(canvas, rssiData, step, h);
+        drawLine(canvas, rssiData, step, h, rssiLinePaint, true);
     }
 
-    // ─────────────────────────────
-    // LINE + EMOJIS
-    // ─────────────────────────────
-
-    private void drawRssiLine(Canvas canvas,
-                              List<Float> data,
-                              float step,
-                              float h) {
+    // LINE DRAWER
+    private void drawLine(Canvas canvas,
+                          List<Float> data,
+                          float step,
+                          float h,
+                          Paint paint,
+                          boolean drawEmoji) {
 
         Path path = new Path();
 
@@ -191,27 +220,16 @@ public class SignalWaveChartView extends View {
 
             path.lineTo(x, y);
 
-            // 🔥 EMOJI EVERY 8 POINTS (your request)
-            if (i % 8 == 0) {
-
+            if (drawEmoji && i % 8 == 0) {
                 float emojiY = Math.max(30f, y - 18f);
-
-                canvas.drawText(
-                        rssiEmoji(v),
-                        x,
-                        emojiY,
-                        emojiPaint
-                );
+                canvas.drawText(rssiEmoji(v), x, emojiY, emojiPaint);
             }
         }
 
-        canvas.drawPath(path, rssiLinePaint);
+        canvas.drawPath(path, paint);
     }
 
-    // ─────────────────────────────
     // FILL
-    // ─────────────────────────────
-
     private void drawFill(Canvas canvas,
                           List<Float> data,
                           float step,
@@ -239,10 +257,6 @@ public class SignalWaveChartView extends View {
         canvas.drawPath(fill, fillPaint);
     }
 
-    // ─────────────────────────────
-    // EMOJIS
-    // ─────────────────────────────
-
     private String rssiEmoji(float value) {
         if (value < 0.25f) return "💀";
         if (value < 0.45f) return "😡";
@@ -250,10 +264,6 @@ public class SignalWaveChartView extends View {
         if (value < 0.85f) return "🙂";
         return "😄";
     }
-
-    // ─────────────────────────────
-    // UTILS
-    // ─────────────────────────────
 
     private int adjustAlpha(int color, int a) {
         return Color.argb(
@@ -264,18 +274,31 @@ public class SignalWaveChartView extends View {
         );
     }
 
-    // optional external reset
+    // RESET
     public void setSignalLevel(int level, int color, List<Integer> history) {
 
         signalColor = color;
 
         rssiTarget.clear();
         rssiData.clear();
+        avgTarget.clear();
+        avgData.clear();
 
-        for (int rssi : history) {
-            float v = normalizeRssi(rssi);
-            rssiTarget.add(v);
-            rssiData.add(v);
+        int sum = 0;
+
+        for (int i = 0; i < history.size(); i++) {
+
+            int rssi = history.get(i);
+            sum += rssi;
+
+            float raw = normalizeRssi(rssi);
+            float avg = normalizeRssi(sum / (i + 1));
+
+            rssiTarget.add(raw);
+            rssiData.add(raw);
+
+            avgTarget.add(avg);
+            avgData.add(avg);
         }
 
         syncSize();
