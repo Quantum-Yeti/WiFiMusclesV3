@@ -17,6 +17,7 @@ band, and connection quality — without overwhelming the user with raw network 
 - [Architecture](#architecture)
 - [Permissions](#permissions)
 - [License](#license)
+- [Privacy Policy](#privacy-policy)
 
 ---
 
