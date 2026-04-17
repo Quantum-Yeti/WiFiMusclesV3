@@ -132,6 +132,12 @@ See [LICENSE](LICENSE) for details.
 
 ---
 
+## Privacy Policy
+
+The privacy policy can be found here: [Privacy Policy](https://quantum-yeti.github.io/privacypolicy/wifimuscles.html)
+
+---
+
 ## Author
 
 Developed and maintained by [quantum-yeti](https://github.com/quantum-yeti)
