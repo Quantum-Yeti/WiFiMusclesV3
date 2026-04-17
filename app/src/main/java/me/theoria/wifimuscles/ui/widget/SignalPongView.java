@@ -1,10 +1,10 @@
 package me.theoria.wifimuscles.ui.widget;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 
 public class SignalPongView extends View {
@@ -13,175 +13,177 @@ public class SignalPongView extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    // paddle
-    private float paddleX;
-    private float paddleWidth = 220f;
+    private float paddleLeftY;
+    private float paddleRightY;
+    private final float paddleHeight = 220f;
+    private final float paddleWidth = 30f;
 
-    // ball
     private float ballX, ballY;
     private float vx, vy;
-    private float ballR = 16f;
+    private final float ballR = 16f;
 
     private int score = 0;
-    private int signalLevel = 2; // default so it moves immediately
+    private int signalLevel = 2;
 
     private float r = 120, g = 180, b = 255;
 
-    private ValueAnimator animator;
-
-    private boolean initialized = false;
+    private Thread gameThread;
+    private volatile boolean running = false;
+    private volatile boolean initialized = false;
 
     public SignalPongView(Context c) { super(c); init(); }
     public SignalPongView(Context c, AttributeSet a) { super(c, a); init(); }
 
     private void init() {
         setWillNotDraw(false);
-
-        animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.setDuration(16);
-        animator.setRepeatCount(ValueAnimator.INFINITE);
-        animator.addUpdateListener(a -> {
-            if (!initialized && getWidth() > 0) {
-                reset(); // ← CRITICAL FIX
-                initialized = true;
-            }
-            update();
-            invalidate();
-        });
-        animator.start();
     }
 
-    // ─────────────────────────────
-    // SIGNAL
-    // ─────────────────────────────
+    // LIFECYCLE
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        running = true;
+        gameThread = new Thread(() -> {
+            while (running) {
+                if (!initialized && getWidth() > 0) {
+                    reset();
+                    initialized = true;
+                }
+                if (initialized) {
+                    update();
+                }
+                postInvalidate();
+                try {
+                    Thread.sleep(16);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        gameThread.setDaemon(true);
+        gameThread.start();
+    }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        running = false;
+        try {
+            gameThread.join(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    // SIGNAL
     public void setSignalLevel(int level, int color) {
         signalLevel = Math.max(0, Math.min(level, MAX_LEVEL));
-
         r = Color.red(color);
         g = Color.green(color);
         b = Color.blue(color);
     }
 
-    // ─────────────────────────────
-    // TOUCH
-    // ─────────────────────────────
-
-    @Override
-    public boolean onTouchEvent(MotionEvent e) {
-        paddleX = e.getX();
-        return true;
-    }
-
-    // ─────────────────────────────
-    // RESET (FIXED)
-    // ─────────────────────────────
-
+    // RESET
     private void reset() {
-
         float w = getWidth();
         float h = getHeight();
 
-        paddleX = w / 2f;
+        paddleLeftY = h / 2f;
+        paddleRightY = h / 2f;
 
         ballX = w / 2f;
         ballY = h / 2f;
 
-        vx = (float)(Math.random() * 4f - 2f);
-        vy = -8f;
+        vx = (Math.random() > 0.5 ? 1 : -1) * 8f;
+        vy = (float)(Math.random() * 6f - 3f);
 
         score = 0;
     }
 
-    // ─────────────────────────────
     // UPDATE
-    // ─────────────────────────────
-
     private void update() {
-
         float strength = signalLevel / (float) MAX_LEVEL;
         float speedScale = 0.7f + strength * 1.6f;
-
-        ballX += vx * speedScale;
-        ballY += vy * speedScale;
 
         float w = getWidth();
         float h = getHeight();
 
-        // walls
-        if (ballX < ballR || ballX > w - ballR) {
+        float paddleHalf = (paddleHeight * (1f - strength * 0.4f)) / 2f;
+
+        paddleLeftY  += (ballY - paddleLeftY)  * (0.08f + strength * 0.08f);
+        paddleRightY += (ballY - paddleRightY) * (0.06f + strength * 0.06f);
+
+        ballX += vx * speedScale;
+        ballY += vy * speedScale;
+
+        if (ballY < ballR || ballY > h - ballR) {
+            vy *= -1;
+        }
+
+        float leftX  = 60f;
+        float rightX = w - 60f;
+
+        if (ballX < leftX + paddleWidth &&
+                ballY > paddleLeftY - paddleHalf &&
+                ballY < paddleLeftY + paddleHalf &&
+                vx < 0) {
             vx *= -1;
-        }
-
-        if (ballY < ballR) {
-            vy *= -1;
-        }
-
-        float paddleY = h - 120f;
-        float paddleHalf = (paddleWidth * (1f - strength * 0.4f)) / 2f;
-
-        // paddle collision
-        if (ballY > paddleY - ballR &&
-                ballX > paddleX - paddleHalf &&
-                ballX < paddleX + paddleHalf &&
-                vy > 0) {
-
-            vy *= -1;
-
-            float hit = (ballX - paddleX) / paddleHalf;
-            vx += hit * 4f;
-
+            vy += ((ballY - paddleLeftY) / paddleHalf) * 4f;
             score++;
         }
 
-        // miss
-        if (ballY > h + 50) {
+        if (ballX > rightX - paddleWidth &&
+                ballY > paddleRightY - paddleHalf &&
+                ballY < paddleRightY + paddleHalf &&
+                vx > 0) {
+            vx *= -1;
+            vy += ((ballY - paddleRightY) / paddleHalf) * 4f;
+            score++;
+        }
+
+        if (ballX < -50 || ballX > w + 50) {
             reset();
         }
     }
 
-    // ─────────────────────────────
     // DRAW
-    // ─────────────────────────────
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        if (!initialized) return;
+
         float strength = signalLevel / (float) MAX_LEVEL;
+        float w = getWidth();
         float h = getHeight();
 
-        float paddleY = h - 120f;
-        float paddleHalf = (paddleWidth * (1f - strength * 0.4f)) / 2f;
+        float paddleHalf = (paddleHeight * (1f - strength * 0.4f)) / 2f;
+        float leftX  = 60f;
+        float rightX = w - 60f;
 
-        // paddle
         paint.setColor(argb(0.9f));
+
         canvas.drawRoundRect(
-                paddleX - paddleHalf,
-                paddleY,
-                paddleX + paddleHalf,
-                paddleY + 30,
-                20, 20,
-                paint
-        );
+                leftX, paddleLeftY - paddleHalf,
+                leftX + paddleWidth, paddleLeftY + paddleHalf,
+                20, 20, paint);
 
-        // paddle glow
-        //paint.setColor(argb(0.25f + strength * 0.3f));
-        //canvas.drawCircle(paddleX, paddleY, 90 + strength * 60, paint);
+        canvas.drawRoundRect(
+                rightX - paddleWidth, paddleRightY - paddleHalf,
+                rightX, paddleRightY + paddleHalf,
+                20, 20, paint);
 
-        // ball
         paint.setColor(argb(1f));
         canvas.drawCircle(ballX, ballY, ballR, paint);
 
-        // ball glow
         paint.setColor(argb(0.3f + strength * 0.3f));
         canvas.drawCircle(ballX, ballY, ballR * 2.5f, paint);
 
-        // score
         paint.setColor(Color.WHITE);
         paint.setTextSize(42f);
         paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("hits: " + score, getWidth()/2f, 80, paint);
+        canvas.drawText("rally: " + score, w / 2f, 80, paint);
     }
 
     private int argb(float a) {

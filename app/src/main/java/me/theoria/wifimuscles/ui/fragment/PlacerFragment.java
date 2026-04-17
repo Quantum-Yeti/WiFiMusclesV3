@@ -10,6 +10,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -53,6 +56,20 @@ public class PlacerFragment extends Fragment {
 
         viewModel = new ViewModelProvider(requireActivity())
                 .get(HomeViewModel.class);
+
+        // top of fragment padding
+        ViewCompat.setOnApplyWindowInsetsListener(binding.topGuide, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            view.setPadding(
+                    view.getPaddingLeft(),
+                    bars.top + 16, // padding
+                    view.getPaddingRight(),
+                    view.getPaddingBottom()
+            );
+
+            return insets;
+        });
 
         observeSignal();
         loadBannerAd();

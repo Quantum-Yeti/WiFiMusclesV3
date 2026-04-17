@@ -41,7 +41,7 @@ public class DetailsViewModel extends ViewModel {
 
         float variance = 0;
         for (int v : history) {
-            variance += Math.pow(v - avg, 2);
+            variance += (float) Math.pow(v - avg, 2);
         }
         variance /= history.size();
 
@@ -68,12 +68,12 @@ public class DetailsViewModel extends ViewModel {
             note = "Possible latency spikes";
         } else if (rssi >= -80) {
             rec = "Weak signal";
-            placement = "Move closer or add extender";
+            placement = "Move closer and add extender";
             note = "Expect drops";
         } else {
             rec = "Dead zone";
             placement = "Extender required";
-            note = "Unusable connection";
+            note = "Go back towards the router and place an extender";
         }
 
         state.setValue(new DetailsUiState(

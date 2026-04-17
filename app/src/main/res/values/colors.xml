@@ -10,6 +10,9 @@
     <color name="surface">#FFFFFF</color>
     <color name="surface_variant">#F1F5F9</color>
 
+    <!-- Launch screen -->
+    <color name="launch_background">#03065b</color>
+
     <!-- Text -->
     <color name="on_background">#0F172A</color>
     <color name="on_surface">#111827</color>

@@ -40,20 +40,20 @@ most users actually have: *"Does my Wi-Fi suck?"*
 
 ## Roadmap
 
-| Feature | Status |
-|---|---|
-| Real-time signal monitoring | ✅ Complete |
-| Frequency band detection | ✅ Complete |
-| Link speed display | ✅ Complete |
-| Signal quality rating | ✅ Complete |
-| Bottom navigation scaffold | ✅ Complete |
-| Network details screen | 🔄 In Progress |
-| Internet reachability check | 📋 Planned |
-| Gateway ping / response time | 📋 Planned |
-| Channel congestion scanner | 📋 Planned |
+| Feature                       | Status |
+|-------------------------------|---|
+| Real-time signal monitoring   | ✅ Complete |
+| Frequency band detection      | ✅ Complete |
+| Link speed display            | ✅ Complete |
+| Signal quality rating         | ✅ Complete |
+| Bottom navigation scaffold    | ✅ Complete |
+| Network details screen        | ✅ Complete |
+| Gateway ping / response time  | 📋 Planned |
+| Channel congestion scanner    | 📋 Planned |
 | Signal strength history graph | 📋 Planned |
-| Contextual user tips | 📋 Planned |
-| Speed test | 📋 Planned |
+| Contextual user tips          | 📋 Planned |
+| Speed test                    | ✅ Complete |
+| UI Refinement                 | 📋 Planned  |
 
 ---
 
@@ -91,18 +91,7 @@ most users actually have: *"Does my Wi-Fi suck?"*
 ---
 
 ## Architecture
-
-Wi-Fi Muscles follows the **MVVM** architectural pattern.
-```
-ui/
-├── HomeFragment              # Signal strength and connection overview
-├── DetailsFragment           # Extended network information (in progress)
-├── ScanFragment              # Channel and nearby network scanner (planned)
-├── SpeedTestFragment         # Connection speed test (planned)
-├── OptionsFragment           # App settings (planned)
-└── viewmodel/
-    └── HomeViewModel         # WiFi data fetching and LiveData exposure
-```
+Wi-Fi Muscles follows MVVM — fragments observe LiveData exposed by ViewModels, which pull from repository/helper classes. No business logic lives in the UI layer.
 
 **Stack**
 

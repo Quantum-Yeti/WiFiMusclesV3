@@ -54,6 +54,7 @@ public class DetailsFragment extends Fragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
 
+        // top of the fragment padding
         ViewCompat.setOnApplyWindowInsetsListener(binding.title, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 

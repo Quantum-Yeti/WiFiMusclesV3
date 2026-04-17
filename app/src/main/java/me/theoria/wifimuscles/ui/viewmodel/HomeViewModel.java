@@ -152,7 +152,7 @@ public class HomeViewModel extends AndroidViewModel {
             quality = "Weak";
             color = COLOR_ORANGE;
         } else {
-            quality = "Poor";
+            quality = "Unusable";
             color = COLOR_RED;
         }
 

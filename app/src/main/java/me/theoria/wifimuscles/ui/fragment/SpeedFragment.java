@@ -11,6 +11,9 @@ import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -37,7 +40,7 @@ public class SpeedFragment extends Fragment {
 
         SwipeRefreshLayout swipeRefresh = view.findViewById(R.id.swipeRefresh);
         WebView webView = view.findViewById(R.id.speedTestWeb);
-        LottieAnimationView animView = view.findViewById(R.id.randAnim);
+        //LottieAnimationView animView = view.findViewById(R.id.randAnim);
 
         AdView adView = view.findViewById(R.id.ad_view);
 
@@ -70,18 +73,32 @@ public class SpeedFragment extends Fragment {
                 null
         );
 
-        // set initial animation
-        setRandomAnimation(animView);
-
-        swipeRefresh.setOnRefreshListener(() -> {
-            setRandomAnimation(animView);  // change animation first
-            webView.reload();             // then reload
-        });
+        // Swipe to refresh with webview
+        swipeRefresh.setOnRefreshListener(webView::reload);
 
         return view;
     }
 
-    private void setRandomAnimation(LottieAnimationView animation) {
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    bars.top + 16,
+                    v.getPaddingRight(),
+                    bars.bottom + 16
+            );
+
+            return insets;
+        });
+    }
+
+    /*private void setRandomAnimation(LottieAnimationView animation) {
 
         int[] animations = {
                 R.raw.cat_anim,
@@ -101,5 +118,5 @@ public class SpeedFragment extends Fragment {
         animation.setAnimation(pick);
         animation.setRepeatCount(LottieDrawable.INFINITE);
         animation.playAnimation();
-    }
+    }*/
 }
