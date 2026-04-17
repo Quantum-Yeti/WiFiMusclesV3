@@ -177,7 +177,11 @@ public class HomeFragment extends Fragment {
         List<Integer> history = viewModel.getRssiHistory().getValue();
 
         if (history != null && wave != null) {
-            wave.setSignalLevel(level, color, history);
+            wave.bind(
+                    getViewLifecycleOwner(),
+                    viewModel.getSignalColor(),
+                    viewModel.getRssiHistory()
+            );
         }
 
         float stability = StabilityHelper.calculateStabilityScore(
