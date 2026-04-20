@@ -31,6 +31,7 @@ public class DetailsFragment extends Fragment {
 
     private FragmentDetailsBinding binding;
     private DetailsViewModel detailsViewModel;
+    private HomeViewModel homeViewModel;
     private DetailsAdapter adapter;
 
     @Nullable
@@ -50,40 +51,37 @@ public class DetailsFragment extends Fragment {
         detailsViewModel = new ViewModelProvider(requireActivity())
                 .get(DetailsViewModel.class);
 
+        homeViewModel = new ViewModelProvider(requireActivity())
+                .get(HomeViewModel.class);
+
         adapter = new DetailsAdapter();
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
 
-        // top of the fragment padding
-        ViewCompat.setOnApplyWindowInsetsListener(binding.title, (v, insets) -> {
-            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+        setupInsets();
+        observeWifi();
+    }
 
-            view.setPadding(
-                    view.getPaddingLeft(),
-                    bars.top + 16, // padding
-                    view.getPaddingRight(),
-                    view.getPaddingBottom()
+    private void setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            v.setPadding(
+                    systemBars.left,
+                    systemBars.top,
+                    systemBars.right,
+                    systemBars.bottom
             );
 
             return insets;
         });
-
-        observeWifi();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 
     private void observeWifi() {
 
-        // Use HomeViewModel only as the RSSI trigger source
-        HomeViewModel homeVm = new ViewModelProvider(requireActivity())
-                .get(HomeViewModel.class);
-
-        homeVm.getRssi().observe(getViewLifecycleOwner(), rssiText -> {
+        // 1. RSSI trigger from HomeViewModel
+        homeViewModel.getRssi().observe(getViewLifecycleOwner(), rssiText -> {
             if (rssiText == null || binding == null) return;
 
             String cleaned = rssiText.replaceAll("[^0-9\\-]", "");
@@ -106,11 +104,11 @@ public class DetailsFragment extends Fragment {
             WifiInfo info = getWifiInfo(wm, cm);
             DhcpInfo dhcp = wm.getDhcpInfo();
 
-            // Feed DetailsViewModel — it owns all the computation
+            // 2. Feed raw stats only
             detailsViewModel.update(rssi, info, dhcp);
         });
 
-        // Observe computed state and pass to adapter
+        // 4. Render UI state
         detailsViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             if (state == null || binding == null) return;
             adapter.setState(state);
@@ -133,5 +131,11 @@ public class DetailsFragment extends Fragment {
         }
 
         return wifiManager.getConnectionInfo();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

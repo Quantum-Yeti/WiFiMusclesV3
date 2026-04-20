@@ -51,7 +51,7 @@ public class HomeFragment extends Fragment {
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (!isGranted && binding != null) {
                     binding.tvNetworkName.setText(R.string.perm_denied);
-                    binding.tvSubtitle.setText(R.string.location_needed);
+                    //binding.tvSubtitle.setText(R.string.location_needed);
                 }
             });
 
@@ -86,6 +86,7 @@ public class HomeFragment extends Fragment {
 
         setupUi();
         setupInsets();
+        setupModeButton();
         setupPager();
         setupObservers();
         startLoops();
@@ -224,6 +225,22 @@ public class HomeFragment extends Fragment {
 
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
         }
+    }
+
+    private int currentPage = 0;
+
+    private void setupModeButton() {
+
+        binding.btnMode.setOnClickListener(v -> {
+
+            currentPage++;
+
+            if (currentPage > 3) {
+                currentPage = 0;
+            }
+
+            binding.signalPager.setCurrentItem(currentPage, true);
+        });
     }
 
     @Override

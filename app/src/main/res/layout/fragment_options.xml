@@ -10,104 +10,198 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingTop="16dp"
+        android:paddingBottom="32dp">
 
-        <!-- title -->
+        <!-- TITLE -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings"
-            android:textSize="22sp"
+            android:text="Settings"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@color/on_surface"
-            android:layout_marginBottom="24dp" />
+            android:paddingStart="20dp"
+            android:paddingBottom="12dp"/>
 
-        <!-- appearance section -->
+        <!-- ================= APPEARANCE ================= -->
+
         <TextView
+            android:id="@+id/headerAppearance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/appearance"
+            android:text="Appearance"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/on_surface_variant"
+            android:alpha="0"
+            android:translationY="12dp"
+            android:paddingStart="20dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp"/>
 
-        <Switch
-            android:id="@+id/switchDarkTheme"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/dark_theme"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <!-- behavior section -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Dark mode"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchDarkTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"/>
+
+        <!-- ================= BEHAVIOR ================= -->
+
         <TextView
+            android:id="@+id/headerBehavior"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/behavior"
+            android:text="Behavior"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/on_surface_variant"
+            android:alpha="0"
+            android:translationY="12dp"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"/>
 
-        <Switch
-            android:id="@+id/switchStartBlob"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="something here"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <!-- support section -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start on launch"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"/>
+
+        <!-- ================= SUPPORT ================= -->
+
         <TextView
+            android:id="@+id/headerSupport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/support"
+            android:text="Support"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/on_surface_variant"
+            android:alpha="0"
+            android:translationY="12dp"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"/>
 
-        <Button
+        <LinearLayout
             android:id="@+id/btnDonate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/donate_a_coffee"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <Button
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Donate a coffee"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/btnRate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/rate_the_app"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <Button
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Rate the app"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/btnShare"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/share_the_app"
-            android:layout_marginBottom="24dp" />
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="?attr/selectableItemBackground">
 
-        <!-- about section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Share app"
+                android:textSize="16sp"
+                android:textColor="@color/on_surface"/>
+        </LinearLayout>
+
+        <!-- ================= ABOUT ================= -->
+
         <TextView
+            android:id="@+id/headerAbout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/about"
+            android:text="About"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="@color/on_surface"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/on_surface_variant"
+            android:alpha="0"
+            android:translationY="12dp"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"/>
 
         <TextView
             android:id="@+id/tvVersion"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/version"
-            android:textColor="@color/on_surface_variant" />
+            android:text="Version"
+            android:textSize="14sp"
+            android:textColor="@color/on_surface_variant"
+            android:paddingStart="20dp"
+            android:paddingBottom="20dp"/>
 
     </LinearLayout>
-
 </ScrollView>

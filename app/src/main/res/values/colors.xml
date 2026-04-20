@@ -10,6 +10,15 @@
     <color name="surface">#FFFFFF</color>
     <color name="surface_variant">#F1F5F9</color>
 
+    <!-- Hero card: slightly tinted surface, distinct from plain cards -->
+    <color name="card_hero">#FFF0EEF8</color>
+
+    <!-- Muted pill background for dBm badge -->
+    <color name="pill_muted_bg">#14000000</color>
+
+    <!-- Icon+label chip background -->
+    <color name="chip_bg">#0F000000</color>
+
     <!-- Launch screen -->
     <color name="launch_background">#3B82F6</color>
 

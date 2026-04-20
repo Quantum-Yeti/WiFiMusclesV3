@@ -54,4 +54,6 @@
     <string name="ip">IP:</string>
     <string name="connected">Connected:</string>
     <string name="ping_ms">Ping: -- ms</string>
+    <string name="wi_fi_details">Wi-Fi Details</string>
+    <string name="mode">Mode</string>
 </resources>

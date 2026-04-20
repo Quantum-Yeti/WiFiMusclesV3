@@ -24,8 +24,13 @@ public class DetailsViewModel extends ViewModel {
 
     public void update(int rssi, WifiInfo info, DhcpInfo dhcp) {
 
-        history.add(rssi);
-        if (history.size() > 10) history.remove(0);
+        if (history.isEmpty() || history.get(history.size() - 1) != rssi) {
+            history.add(rssi);
+        }
+
+        if (history.size() > 10) {
+            history.remove(0);
+        }
 
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;

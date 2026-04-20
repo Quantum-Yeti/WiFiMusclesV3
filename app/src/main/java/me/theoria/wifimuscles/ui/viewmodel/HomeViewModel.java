@@ -88,24 +88,20 @@ public class HomeViewModel extends AndroidViewModel {
     // Main Wi-Fi info update loop
     public void updateWifiInfo() {
 
-        // Get current Wi-Fi connection info from system
         WifiInfo info = wifiManager.getConnectionInfo();
 
-        // If not connected, post a "disconnected" state to UI
         if (info == null || info.getNetworkId() == -1) {
             postDisconnected();
             return;
         }
 
-        // Wi-Fi Identity Info
+        // --- BASIC INFO ---
         ssid.postValue(info.getSSID().replace("\"", ""));
         rssi.postValue(info.getRssi() + " dBm");
 
-        // Link speed and formatting
         int speed = info.getLinkSpeed();
         linkSpeedValue.postValue(speed);
 
-        // formatted display value
         float value;
         String unit;
 
@@ -119,36 +115,69 @@ public class HomeViewModel extends AndroidViewModel {
 
         linkSpeed.postValue(String.format(Locale.US, "%.1f %s", value, unit));
 
-        // Frequency band detection
         int freq = info.getFrequency();
         String band =
                 (freq >= 2400 && freq <= 2500) ? "2.4 GHz" :
-                (freq >= 4900 && freq <= 5900) ? "5 GHz" :
-                (freq >= 5925 && freq <= 7125) ? "6 GHz" :
-                (freq > 7125) ? "7 GHz" : freq + " MHz";
+                        (freq >= 4900 && freq <= 5900) ? "5 GHz" :
+                                (freq >= 5925 && freq <= 7125) ? "6 GHz" :
+                                        (freq > 7125) ? "7 GHz" : freq + " MHz";
         frequency.postValue(band);
 
-        // Get the Wi-Fi signal strength (RSSI)
+        // --- RSSI + HISTORY ---
         int rssiValue = info.getRssi();
 
-        // Convert RSSI into a 1 to 4 level for text color, animations, and widgets
-        int level = WifiManager.calculateSignalLevel(rssiValue, 4) + 1;
+        List<Integer> history = rssiHistory.getValue();
+        if (history == null) history = new ArrayList<>();
+
+        history.add(rssiValue);
+
+        if (history.size() > 50) {
+            history.remove(0);
+        }
+
+        rssiHistory.postValue(new ArrayList<>(history));
+
+        // --- BLENDED RSSI ---
+        int window = 10;
+        int start = Math.max(0, history.size() - window);
+
+        int sum = 0;
+        int count = 0;
+
+        for (int i = start; i < history.size(); i++) {
+            sum += history.get(i);
+            count++;
+        }
+
+        int avgRssi = count > 0 ? sum / count : rssiValue;
+
+        // blend current + average
+        float blendedRssi = (rssiValue * 0.6f) + (avgRssi * 0.4f);
+
+        // slight stability influence
+        float stabilityScore = StabilityHelper.calculateStabilityScore(history);
+        blendedRssi -= (1f - stabilityScore) * 5f;
+
+        int finalRssi = (int) blendedRssi;
+
+        // --- SIGNAL LEVEL ---
+        int level = WifiManager.calculateSignalLevel(finalRssi, 4) + 1;
         signalLevel.postValue(level);
 
-        // Convert RSSI into quality + color
+        // --- QUALITY + COLOR ---
         String quality;
         int color;
 
-        if (rssiValue >= -50) {
+        if (finalRssi >= -50) {
             quality = "Excellent";
             color = COLOR_CYAN;
-        } else if (rssiValue >= -60) {
+        } else if (finalRssi >= -60) {
             quality = "Good";
             color = COLOR_GREEN;
-        } else if (rssiValue >= -70) {
+        } else if (finalRssi >= -70) {
             quality = "Fair";
             color = COLOR_YELLOW;
-        } else if (rssiValue >= -80) {
+        } else if (finalRssi >= -80) {
             quality = "Weak";
             color = COLOR_ORANGE;
         } else {
@@ -159,39 +188,18 @@ public class HomeViewModel extends AndroidViewModel {
         signalQuality.postValue(quality);
         signalColor.postValue(color);
 
-        // Track signal history for stability and score algorithms
-        List<Integer> history = rssiHistory.getValue();
-        if (history == null) history = new ArrayList<>();
+        // --- DISPLAY (use smoothed value) ---
+        rssi.postValue(finalRssi + " dBm");
 
-        history.add(rssiValue);
-
-        // keep last 50 samples
-        if (history.size() > 50) {
-            history.remove(0);
-        }
-
-        // IMPORTANT: always post a new copy
-        rssiHistory.postValue(new ArrayList<>(history));
-
-        int avgRSSI = 0;
-        for (int a : history) avgRSSI += a;
-        avgRSSI /= history.size();
-
-        rssi.postValue(avgRSSI + " dBm");
-
-        // Stability helper
+        // --- OTHER METRICS ---
         stability.postValue(StabilityHelper.calculateStability(history));
-
-        // Channel helper
         channelInfo.postValue(ChannelHelper.getChannelInfo(freq));
-
-        // Score helper
         score.postValue(ScoreHelper.calculateScore(rssiValue, speed, history));
-
     }
 
     // Offline-disconnected state
     private void postDisconnected() {
+        resetData();
         ssid.postValue("Not Connected");
         rssi.postValue("--");
         linkSpeed.postValue("--");

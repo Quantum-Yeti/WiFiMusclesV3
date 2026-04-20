@@ -1,12 +1,13 @@
 package me.theoria.wifimuscles.ui.fragment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.Switch;
+import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,81 +15,119 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
+
 import me.theoria.wifimuscles.R;
 
 public class OptionsFragment extends Fragment {
+
+    private static final String PREFS = "settings";
+    private static final String KEY_DARK = "dark_mode";
 
     public OptionsFragment() {
         super(R.layout.fragment_options);
     }
 
     @Override
-    public void onViewCreated(@NonNull android.view.View view,
-                              @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        // ui refs
-        Switch darkTheme = view.findViewById(R.id.switchDarkTheme);
+        MaterialSwitch darkTheme = view.findViewById(R.id.switchDarkTheme);
 
-        Button donate = view.findViewById(R.id.btnDonate);
-        Button rate = view.findViewById(R.id.btnRate);
-        Button share = view.findViewById(R.id.btnShare);
+        View donate = view.findViewById(R.id.btnDonate);
+        View rate = view.findViewById(R.id.btnRate);
+        View share = view.findViewById(R.id.btnShare);
 
         TextView version = view.findViewById(R.id.tvVersion);
 
-        // -------------------------
-        // version display
-        // -------------------------
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences(PREFS, 0);
+
+        setupVersion(version);
+        setupTheme(darkTheme, prefs);
+        setupButtons(donate, rate, share);
+        animateHeaders(view);
+    }
+
+    // ---------------- VERSION ----------------
+    private void setupVersion(TextView version) {
         try {
-            PackageInfo pInfo = requireContext()
-                    .getPackageManager()
+            PackageInfo info = requireContext().getPackageManager()
                     .getPackageInfo(requireContext().getPackageName(), 0);
 
-            version.setText("Version " + pInfo.versionName);
-
+            version.setText("Version " + info.versionName);
         } catch (PackageManager.NameNotFoundException e) {
             version.setText("Version ?");
         }
+    }
 
-        // -------------------------
-        // theme toggle
-        // -------------------------
-        darkTheme.setOnCheckedChangeListener((b, checked) -> {
+    // ---------------- THEME ----------------
+    private void setupTheme(MaterialSwitch sw, SharedPreferences prefs) {
+
+        boolean dark = prefs.getBoolean(KEY_DARK, false);
+        sw.setChecked(dark);
+
+        sw.setOnCheckedChangeListener((b, checked) -> {
+            prefs.edit().putBoolean(KEY_DARK, checked).apply();
+
             AppCompatDelegate.setDefaultNightMode(
-                    checked
-                            ? AppCompatDelegate.MODE_NIGHT_YES
+                    checked ? AppCompatDelegate.MODE_NIGHT_YES
                             : AppCompatDelegate.MODE_NIGHT_NO
             );
-        });
 
-        // -------------------------
-        // donate (paypal)
-        // -------------------------
-        donate.setOnClickListener(v -> {
-            String url = "https://www.paypal.com/";
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            requireActivity().recreate();
         });
+    }
 
-        // -------------------------
-        // rate app
-        // -------------------------
+    // ---------------- BUTTONS ----------------
+    private void setupButtons(View donate, View rate, View share) {
+
+        donate.setOnClickListener(v ->
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://www.paypal.com/"))));
+
         rate.setOnClickListener(v -> {
-            String uri = "market://details?id=" + requireContext().getPackageName();
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("market://details?id=" + requireContext().getPackageName())));
+            } catch (Exception e) {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id="
+                                + requireContext().getPackageName())));
+            }
         });
 
-        // -------------------------
-        // share app
-        // -------------------------
         share.setOnClickListener(v -> {
-            String link = "https://play.google.com/"
+            String link = "https://play.google.com/store/apps/details?id="
                     + requireContext().getPackageName();
 
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT,
-                    "Check out Wi-Fi Muscles:\n" + link);
-
-            startActivity(Intent.createChooser(intent, "Share via"));
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("text/plain");
+            i.putExtra(Intent.EXTRA_TEXT, "Check out Wi-Fi Muscles:\n" + link);
+            startActivity(Intent.createChooser(i, "Share"));
         });
+    }
+
+    // ---------------- STYLE ANIMATION ----------------
+    private void animateHeaders(View view) {
+
+        animate(view.findViewById(R.id.headerAppearance), 0);
+        animate(view.findViewById(R.id.headerBehavior), 80);
+        animate(view.findViewById(R.id.headerSupport), 160);
+        animate(view.findViewById(R.id.headerAbout), 240);
+    }
+
+    private void animate(View v, long delay) {
+        if (v == null) return;
+
+        v.setAlpha(0f);
+        v.setTranslationY(16f);
+
+        v.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(delay)
+                .setDuration(450)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 }

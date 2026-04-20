@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
@@ -10,105 +11,152 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="32dp">
 
-        <!-- Header -->
-        <TextView
-            android:id="@+id/tv_network_name"
-            android:layout_width="wrap_content"
+        <!-- HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/not_connected"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/on_surface"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:includeFontPadding="false" />
+            android:orientation="vertical"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp">
 
-        <TextView
-            android:id="@+id/tv_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/wifi_health_summary"
-            android:textSize="13sp"
-            android:textColor="@color/on_surface_variant"
-            android:alpha="0.9"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="28dp"
-            android:includeFontPadding="false" />
+            <!-- ROW 1: Primary + meta -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                tools:ignore="UselessParent">
 
-        <!-- Signal Card -->
+                <!-- LEFT: Wi-Fi Muscles Icon -->
+                <ImageView
+                    android:id="@+id/img_app_icon"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@mipmap/ic_launcher_round"
+                    android:contentDescription="@null" />
+
+                <!-- CENTER: Network name -->
+                <TextView
+                    android:id="@+id/tv_network_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/not_connected"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- RIGHT: mode button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="@string/mode"
+                    android:textSize="12sp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    app:cornerRadius="16dp"
+                    app:backgroundTint="@color/surface"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/on_surface_variant"
+                    android:textColor="@color/on_surface" />
+
+            </LinearLayout>
+
+
+
+        </LinearLayout>
+
+        <!-- SIGNAL HERO CARD -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="24dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/divider"
+            app:cardCornerRadius="28dp"
+            app:strokeWidth="0dp"
             app:cardElevation="0dp"
-            android:backgroundTint="@color/surface">
+            android:background="@drawable/bg_pager_tint">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="24dp">
+                android:paddingStart="28dp"
+                android:paddingEnd="28dp"
+                android:paddingTop="28dp"
+                android:paddingBottom="0dp">
 
                 <TextView
                     android:id="@+id/tv_signal_quality"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="--"
-                    android:textSize="38sp"
+                    android:text="@string/empty"
+                    android:textSize="40sp"
                     android:textStyle="bold"
                     android:textColor="@color/signal_none"
-                    android:letterSpacing="0.02"
+                    android:letterSpacing="-0.02"
+                    android:includeFontPadding="false"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent" />
 
+                <!-- dBm pill, top-right -->
                 <TextView
                     android:id="@+id/tv_rssi"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="-- dBm"
-                    android:textSize="14sp"
+                    android:text="@string/empty_dbm"
+                    android:textSize="13sp"
                     android:textColor="@color/on_surface_variant"
-                    android:alpha="0.9"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tv_signal_quality"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:background="@drawable/bg_pill_muted"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/tv_signal_quality" />
 
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/signalPager"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/tv_rssi"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/tv_signal_quality"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="5:3" />
 
+
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ROW 1 -->
+        <!-- ROW 1 — Link Speed / Frequency -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="12dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -118,26 +166,45 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/link_speed"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_speed"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_speed"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/link_speed"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_link_speed"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/mbps"
-                        android:textSize="20sp"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -145,10 +212,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -158,46 +224,64 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/frequency"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_freq"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_freq"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/frequency"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_frequency"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/empty"
-                        android:textSize="20sp"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-        <!-- ROW 2 -->
+        <!-- ROW 2 — Stability / Score -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="12dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -207,26 +291,45 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/stability"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_stable"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_stable"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stability"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_stability"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/empty"
-                        android:textSize="18sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -234,10 +337,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -247,46 +349,64 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/score"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_score"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_score"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/score"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_score"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/zero"
-                        android:textSize="20sp"
+                        android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-        <!-- ROW 3 -->
+        <!-- ROW 3 — Channel / Latency -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="12dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -296,26 +416,45 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/channel"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_channel"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_channel"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/channel"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_channel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/empty"
-                        android:textSize="18sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -323,10 +462,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="20dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="24dp"
+                app:strokeWidth="0dp"
                 app:cardElevation="0dp"
                 android:backgroundTint="@color/surface">
 
@@ -336,32 +474,51 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/latency"
-                        android:textSize="12sp"
-                        android:textColor="@color/on_surface_variant"
-                        android:includeFontPadding="false"
-                        android:drawablePadding="8dp"
+                        android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        app:drawableStartCompat="@drawable/ic_latency"/>
+                        android:background="@drawable/bg_icon_chip"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp">
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_latency"
+                            app:tint="@color/on_surface_variant" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/latency"
+                            android:textSize="11sp"
+                            android:textColor="@color/on_surface_variant"
+                            android:includeFontPadding="false"
+                            android:layout_marginStart="5dp" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_latency"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/empty_ms"
-                        android:textSize="18sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/on_surface"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="12dp"
+                        android:includeFontPadding="false" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-        <!-- AD -->
+        <!-- AD BANNER -->
         <com.google.android.gms.ads.AdView
             android:id="@+id/ad_view"
             android:layout_width="match_parent"

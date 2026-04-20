@@ -4,97 +4,122 @@ import java.util.List;
 
 public class StabilityHelper {
 
-    private static final int MIN_SAMPLES = 5;
+    private static final int MIN_REQUIRED_SAMPLES = 5;
 
     // -------------------------
-    // PUBLIC API (STRING)
+    // PUBLIC: TEXT OUTPUT
     // -------------------------
-    public static String calculateStability(List<Integer> history) {
+    public static String calculateStability(List<Integer> rssiHistory) {
 
-        if (!isValid(history)) {
+        if (!hasEnoughSamples(rssiHistory)) {
             return "Calculating...";
         }
 
-        float score = calculateInstabilityScore(history);
+        float instabilityScore = calculateInstability(rssiHistory);
 
-        if (score < 0.15f) return "Very Stable";
-        if (score < 0.30f) return "Stable";
-        if (score < 0.55f) return "Unstable";
+        if (instabilityScore < 0.15f) return "Very Stable";
+        if (instabilityScore < 0.30f) return "Stable";
+        if (instabilityScore < 0.55f) return "Unstable";
         return "Very Unstable";
     }
 
     // -------------------------
-    // PUBLIC API (NUMERIC)
+    // PUBLIC: NUMERIC OUTPUT
     // 1 = stable, 0 = unstable
     // -------------------------
-    public static float calculateStabilityScore(List<Integer> history) {
+    public static float calculateStabilityScore(List<Integer> rssiHistory) {
 
-        if (!isValid(history)) return 1f;
+        if (!hasEnoughSamples(rssiHistory)) return 1f;
 
-        float instability = calculateInstabilityScore(history);
+        float instabilityScore = calculateInstability(rssiHistory);
 
-        return 1f - instability;
+        return 1f - instabilityScore;
     }
 
-    // -------------------------
     // CORE CALCULATION
-    // -------------------------
-    private static float calculateInstabilityScore(List<Integer> history) {
+    private static float calculateInstability(List<Integer> rssiHistory) {
 
-        float mean = calculateMean(history);
-        float stdDev = calculateStdDev(history, mean);
-        float jitter = calculateJitter(history);
+        float averageRssi = calculateAverage(rssiHistory);
+        float rssiVariation = calculateStandardDeviation(rssiHistory, averageRssi);
+        float rssiJitter = calculateJitter(rssiHistory);
+        float rssiTrend = calculateTrend(rssiHistory);
 
-        // Weighted combination
-        float raw = (stdDev * 0.6f) + (jitter * 0.4f);
+        // Combine noise + short-term fluctuation
+        float fluctuationScore =
+                (rssiVariation * 0.7f) +
+                        (rssiJitter * 0.3f);
 
-        // Normalize:
-        // ~0–3 dBm = stable
-        // ~15+ dBm = very unstable
-        float normalized = clamp(raw / 15f);
+        // Penalize consistent drift (moving away / interference buildup)
+        float trendPenalty = Math.abs(rssiTrend) * 0.5f;
 
-        return normalized;
+        float rawInstability = fluctuationScore + trendPenalty;
+
+        // Normalize based on signal strength context
+        float signalMagnitude = Math.abs(averageRssi); // e.g. -60 → 60
+
+        float normalizationRange = (signalMagnitude > 70f) ? 18f : 12f;
+
+        float normalizedInstability = rawInstability / normalizationRange;
+
+        return clampZeroToOne(normalizedInstability);
     }
 
-    // -------------------------
-    // MATH HELPERS
-    // -------------------------
-    private static float calculateMean(List<Integer> history) {
+    // METRICS
+    private static float calculateAverage(List<Integer> values) {
+
         float sum = 0f;
-        for (int v : history) sum += v;
-        return sum / history.size();
-    }
 
-    private static float calculateStdDev(List<Integer> history, float mean) {
-        float variance = 0f;
-
-        for (int v : history) {
-            float diff = v - mean;
-            variance += diff * diff;
+        for (int value : values) {
+            sum += value;
         }
 
-        variance /= history.size();
+        return sum / values.size();
+    }
+
+    private static float calculateStandardDeviation(List<Integer> values, float mean) {
+
+        float squaredDiffSum = 0f;
+
+        for (int value : values) {
+            float diff = value - mean;
+            squaredDiffSum += diff * diff;
+        }
+
+        float variance = squaredDiffSum / values.size();
+
         return (float) Math.sqrt(variance);
     }
 
-    private static float calculateJitter(List<Integer> history) {
-        float total = 0f;
+    private static float calculateJitter(List<Integer> values) {
 
-        for (int i = 1; i < history.size(); i++) {
-            total += Math.abs(history.get(i) - history.get(i - 1));
+        float totalChange = 0f;
+
+        for (int i = 1; i < values.size(); i++) {
+            int previous = values.get(i - 1);
+            int current = values.get(i);
+
+            totalChange += Math.abs(current - previous);
         }
 
-        return total / (history.size() - 1);
+        return totalChange / (values.size() - 1);
     }
 
-    // -------------------------
-    // UTILS
-    // -------------------------
-    private static boolean isValid(List<Integer> history) {
-        return history != null && history.size() >= MIN_SAMPLES;
+    private static float calculateTrend(List<Integer> values) {
+
+        int sampleCount = values.size();
+
+        float first = values.get(0);
+        float last = values.get(sampleCount - 1);
+
+        return (last - first) / sampleCount;
     }
 
-    private static float clamp(float v) {
-        return Math.max(0f, Math.min(1f, v));
+    // UTILITIES
+    private static boolean hasEnoughSamples(List<Integer> values) {
+        return values != null && values.size() >= MIN_REQUIRED_SAMPLES;
+    }
+
+    private static float clampZeroToOne(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
 }
