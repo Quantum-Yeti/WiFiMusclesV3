@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
 
     // Views for pager / user swipes
     private SignalBlobView blob;
-    private SignalWaveChartView wave;
+    private SignalAvgChartView wave;
     private SignalChartView chartView;
     private SignalPongView pongView;
 
@@ -84,6 +84,7 @@ public class HomeFragment extends Fragment {
             return insets;
         });
 
+
         setupUi();
         setupInsets();
         setupModeButton();
@@ -111,7 +112,12 @@ public class HomeFragment extends Fragment {
         blob = new SignalBlobView(requireContext(), null);
         chartView = new SignalChartView(requireContext(), null);
         pongView = new SignalPongView(requireContext(), null);
-        wave = new SignalWaveChartView(requireContext(), null);
+        wave = new SignalAvgChartView(requireContext(), null);
+        wave.bind(
+                getViewLifecycleOwner(),
+                viewModel.getSignalColor(),
+                viewModel.getRssiHistory()
+        );
 
         List<View> pages = new ArrayList<>();
         pages.add(blob);

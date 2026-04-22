@@ -1,8 +1,10 @@
 package me.theoria.wifimuscles.ui.activity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.WindowCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -14,13 +16,14 @@ import com.google.android.gms.ads.MobileAds;
 
 import me.theoria.wifimuscles.R;
 import me.theoria.wifimuscles.databinding.ActivityMainBinding;
+import me.theoria.wifimuscles.ui.helpers.ThemeManager;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Launcher theme
-        setTheme(R.style.Theme_WifiMuscles);
+        ThemeManager.apply(this);
 
         // --- Transition to app
         super.onCreate(savedInstanceState);

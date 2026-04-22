@@ -64,20 +64,18 @@ public class OptionsFragment extends Fragment {
     // @TODO: Switch should be initialized and setup before fragment lifecycle in MainActivity
     private void setupTheme(MaterialSwitch sw, SharedPreferences prefs) {
 
-        sw.setOnCheckedChangeListener(null);
+        boolean dark = prefs.getBoolean(KEY_DARK, false);
 
-        sw.setChecked(prefs.getBoolean(KEY_DARK, false));
+        sw.setOnCheckedChangeListener(null);
+        sw.setChecked(dark);
 
         sw.setOnCheckedChangeListener((button, checked) -> {
 
-            prefs.edit().putBoolean(KEY_DARK, checked).apply();
-
+            prefs.edit().putBoolean(KEY_DARK, checked).commit();
             AppCompatDelegate.setDefaultNightMode(
-                    checked
-                            ? AppCompatDelegate.MODE_NIGHT_YES
+                    checked ? AppCompatDelegate.MODE_NIGHT_YES
                             : AppCompatDelegate.MODE_NIGHT_NO
             );
-
             requireActivity().recreate();
         });
     }

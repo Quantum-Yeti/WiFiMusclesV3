@@ -4,9 +4,7 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,13 +28,15 @@ public class PlacerFragment extends Fragment {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
+    private static final long WIFI_INTERVAL = 800;
+
     private final Runnable wifiRunnable = new Runnable() {
         @Override
         public void run() {
             if (viewModel != null) {
                 viewModel.updateWifiInfo();
                 updateNetworkInfo();
-                handler.postDelayed(this, 500);
+                handler.postDelayed(this, WIFI_INTERVAL);
             }
         }
     };
@@ -57,22 +57,23 @@ public class PlacerFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity())
                 .get(HomeViewModel.class);
 
-        // top of fragment padding
+        applyInsets(view);
+        observeSignal();
+        loadBannerAd();
+    }
+
+    private void applyInsets(View view) {
         ViewCompat.setOnApplyWindowInsetsListener(binding.topGuide, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 
             view.setPadding(
                     view.getPaddingLeft(),
-                    bars.top + 16, // padding
+                    bars.top + 16,
                     view.getPaddingRight(),
                     view.getPaddingBottom()
             );
-
             return insets;
         });
-
-        observeSignal();
-        loadBannerAd();
     }
 
     private void observeSignal() {
@@ -81,47 +82,96 @@ public class PlacerFragment extends Fragment {
 
             if (binding == null || rssiText == null) return;
 
-            try {
-                String cleaned = rssiText.replaceAll("[^0-9-]", "");
-                int rssi = Integer.parseInt(cleaned);
+            int rssi = parseRssi(rssiText);
 
-                binding.speedometerView.setRssi(rssi);
-                binding.signalValue.setText(rssi + " dBm");
-
-                updateRecommendation(rssi);
-
-            } catch (Exception e) {
-                binding.signalValue.setText("-- dBm");
-                binding.recommendationText.setText("Scanning signal...");
+            if (rssi == Integer.MIN_VALUE) {
+                renderEmptyState();
+                return;
             }
+
+            renderSignal(rssi);
         });
     }
 
-    private void updateRecommendation(int rssi) {
+    private int parseRssi(String raw) {
+        try {
+            String cleaned = raw.replaceAll("[^0-9-]", "");
+            return Integer.parseInt(cleaned);
+        } catch (Exception e) {
+            return Integer.MIN_VALUE;
+        }
+    }
 
-        String message;
+    // 🔥 MAIN RENDER PIPELINE
+    private void renderSignal(int rssi) {
 
-        if (rssi >= -50) {
-            message = "😄 Great Signal\nNo extender needed";
-        } else if (rssi >= -60) {
-            message = "🙂 Good Signal\nPlace an extender nearby";
-        } else if (rssi >= -70) {
-            message = "😐 Fair Signal\nMove closer to router";
+        // Hero
+        binding.speedometerView.setRssi(rssi);
+        binding.signalValue.setText(rssi + " dBm");
+
+        // subtle pulse
+        binding.signalValue.animate()
+                .alpha(0.7f)
+                .setDuration(120)
+                .withEndAction(() ->
+                        binding.signalValue.animate().alpha(1f).setDuration(120)
+                );
+
+        // Decision engine
+        renderPlacementDecision(rssi);
+    }
+
+    private void renderEmptyState() {
+        binding.signalValue.setText("-- dBm");
+
+        binding.placementTitle.setText("Scanning…");
+        binding.placementAction.setText("Walk around to find the best spot");
+        binding.confidenceBar.setProgress(0);
+    }
+
+    // 🔥 CORE UX LOGIC
+    private void renderPlacementDecision(int rssi) {
+
+        String title;
+        String action;
+        int progress;
+
+        if (rssi >= -55) {
+            title = "Perfect spot";
+            action = "Place your extender here";
+            progress = 100;
+
+        } else if (rssi >= -65) {
+            title = "Good spot";
+            action = "Works, but move slightly closer";
+            progress = 75;
+
+        } else if (rssi >= -72) {
+            title = "Borderline";
+            action = "Try a bit closer to router";
+            progress = 50;
+
         } else if (rssi >= -80) {
-            message = "😟 Weak Signal\nConsider repositioning";
+            title = "Weak signal";
+            action = "Move closer before placing";
+            progress = 30;
+
         } else {
-            message = "😨 Poor Signal\nToo far from router";
+            title = "Too far";
+            action = "You are too far from the router";
+            progress = 10;
         }
 
-        binding.recommendationText.setText(message);
+        binding.placementTitle.setText(title);
+        binding.placementAction.setText(action);
+
+        // smooth progress animation
+        binding.confidenceBar.setProgress(progress, true);
     }
 
     private void loadBannerAd() {
-
         AdView adView = binding.adView;
-
-        AdRequest request = new AdRequest.Builder().build();
-        adView.loadAd(request);
+        adView.loadAd(new AdRequest.Builder().build());
     }
 
     private void updateNetworkInfo() {
@@ -133,9 +183,9 @@ public class PlacerFragment extends Fragment {
 
             android.net.wifi.WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
-            // IP Address
             int ipInt = wifiInfo.getIpAddress();
-            @SuppressLint("DefaultLocale") String ip = String.format(
+            @SuppressLint("DefaultLocale")
+            String ip = String.format(
                     "%d.%d.%d.%d",
                     (ipInt & 0xff),
                     (ipInt >> 8 & 0xff),
@@ -143,15 +193,15 @@ public class PlacerFragment extends Fragment {
                     (ipInt >> 24 & 0xff)
             );
 
-            binding.ipValue.setText(ip);
+            binding.ipValue.setText("IP: " + ip);
 
-            // BSSID (router MAC)
             String bssid = wifiInfo.getBSSID();
-            binding.routerValue.setText(bssid != null ? bssid : "--");
+            binding.routerValue.setText(
+                    bssid != null ? "Router: " + bssid : "Router: --"
+            );
 
             if (wifiInfo.getNetworkId() == -1) {
                 binding.routerValue.setText(R.string.router_not_connected);
-                return;
             }
 
         } catch (Exception e) {
